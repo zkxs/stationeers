@@ -1,5 +1,14 @@
-# Hardsuit controller
+# runtime's Hardsuit controller v1.0.0
 # Manages AC, filter, helmet open/close, helmet lock/unlock
+
+# FEATURES:
+# If your helmet needs flushing, it will beep at you.
+# If the environment is probably unsafe, it closes and locks your helmet.
+# Not all types of unsafe environment can be detected. Keeping your helmet closed is on you!
+# It will micromanage your filter, greatly prolonging its lifespan.
+# It will turn the AC off if the temperature is safe.
+# Otherwise, it will set your AC to the most extreme but still safe value.
+# It will turn off air flow when your helmet is open.
 
 use loop
 #use aliases
