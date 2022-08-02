@@ -5,10 +5,14 @@ use aliases
 
 # Constants
 const ZERO_CELSIUS = 273.15
-const MINIMUM_TEMPERATURE = 263 # -10C
-const MAXIMUM_TEMPERATURE = 323 # +50C
-const MINIMUM_PRESSURE = 90 # 20 kPa, but any thing less than 90 is suss if your airmix is 23% ish oxygen
-const MAXIMUM_PRESSURE = 200 # 600 kPa, but anything more than 200 kPa is suss
+# -10C
+const MINIMUM_TEMPERATURE = 263 
+# +50C
+const MAXIMUM_TEMPERATURE = 323 
+# 20 kPa, but any thing less than 90 is suss if your airmix is 23% ish oxygen
+const MINIMUM_PRESSURE = 90 
+# 600 kPa, but anything more than 200 kPa is suss
+const MAXIMUM_PRESSURE = 200 
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
 const MAXIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE = 20
 const MINIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE = 2
@@ -34,12 +38,7 @@ var tmp1
 var tmp2
 
 # main loop
-#loop:
-    # drive air release when helment is closed
-    var helmetOpen = helmet.Open
-    seqz helmetClosed helmetOpen
-    suit.AirRelease = helmetClosed
-
+loop:
     var helmetPressure = helmet.Pressure
 
     # get oxygen pressure (we don't need this presently)
@@ -78,7 +77,12 @@ var tmp2
     or filtering tmp1 tmp2
     suit.Filtration = filtering
 
-    # check for unsafe external environment
+    # drive air release when helment is closed
+    var helmetOpen = helmet.Open
+    seqz helmetClosed helmetOpen
+    suit.AirRelease = helmetClosed
+
+    # unsafe external environment
     if unsafe && helmetOpen
         helmet.Lock = 0
         yield
@@ -88,4 +92,4 @@ var tmp2
     helmet.Lock = unsafe
 
     yield
-#j loop
+j loop
