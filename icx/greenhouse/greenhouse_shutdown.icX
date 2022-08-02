@@ -27,5 +27,5 @@ coolingValve.Lock = LOCK
 coolingValve.On = POWER
 d(LIQUID_PIPE_HEATER).Lock = LOCK
 d(LIQUID_PIPE_HEATER).On = POWER
-d(WALL_HEATER).Lock = Lock
+d(WALL_HEATER).Lock = LOCK
 d(WALL_HEATER).On = POWER

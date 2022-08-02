@@ -1,5 +1,3 @@
-use aliases
-
 # Hardsuit controller
 # Manages AC, filter, helmet open/close, helmet lock/unlock
 
@@ -83,7 +81,8 @@ loop:
     suit.AirRelease = helmetClosed
 
     # unsafe external environment
-    if unsafe && helmetOpen
+    or tmp1 unsafe helmetOpen
+    if tmp1 != 0
         helmet.Lock = 0
         yield
         helmet.Open = 0
