@@ -1,0 +1,72 @@
+use loop
+
+# Constants
+const ZERO_CELSIUS = 273.15
+const MIN_TEMPERATURE = ZERO_CELSIUS + 20 # min temp of room before we panic
+const TARGET_TEMPERATURE_MIN = ZERO_CELSIUS + 22 # bottom of target temperature range
+const TARGET_TEMPERATURE_MAX = ZERO_CELSIUS + 38 # top of target temperature range
+const MAX_TEMPERATURE = ZERO_CELSIUS + 40 # max temp of water
+
+# PrefabHash values
+const LIQUID_PIPE_HEATER = -287495560
+const WALL_HEATER = 24258244
+
+# Device config
+alias liquidSensor             d0
+alias gasSensor                d1
+alias coolingValve             d2
+alias roomTemperatureDisplay   d3 # room temperature
+alias waterTemperatureDisplay  d4 # water temperature
+alias stateDisplay             d5 # state
+
+# States:
+# 0 = off
+# 1 = heat
+# 2 = TURBO heat
+# 3 = cooling
+
+# read sensors
+var roomTemperature = gasSensor.Temperature
+var waterTemperature = liquidSensor.Temperature
+
+# handle low temp
+var displaySetting
+if roomTemperature < TARGET_TEMPERATURE_MIN && waterTemperature < MAX_TEMPERATURE
+    # room is cold
+    d(LIQUID_PIPE_HEATER).On = 1
+    displaySetting = 1
+else
+    if roomTemperature > TARGET_TEMPERATURE_MAX
+        # room is hot
+        d(LIQUID_PIPE_HEATER).On = 0
+
+        # handle water cooling
+        if waterTemperature > MAX_TEMPERATURE
+            coolingValve.On = 1
+            displaySetting = 3
+        else
+            coolingValve.On = 0
+            displaySetting = 0
+        end
+    else
+        # room is neither hot nor cold
+        d(LIQUID_PIPE_HEATER).On = 0
+        coolingValve.On = 0
+        displaySetting = 0
+    end
+end
+
+# handle critical low temp
+if roomTemperature < MIN_TEMPERATURE
+    d(WALL_HEATER).On = 1
+    displaySetting = 2
+else
+    d(WALL_HEATER).On = 0
+end
+
+stateDisplay.Setting = displaySetting
+roomTemperature = roomTemperature - ZERO_CELSIUS
+waterTemperature = waterTemperature - ZERO_CELSIUS
+roomTemperatureDisplay.Setting = roomTemperature
+waterTemperatureDisplay.Setting = waterTemperature
+yield

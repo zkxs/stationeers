@@ -1,0 +1,31 @@
+# Constants
+const POWER = 0
+const LOCK = 0
+
+# PrefabHash values
+const LIQUID_PIPE_HEATER = -287495560
+const WALL_HEATER = 24258244
+
+# Device config
+alias liquidSensor d0
+alias gasSensor    d1 # always on
+alias coolingValve d2
+alias display1     d3
+alias display2     d4
+alias display3     d5
+
+# Shutdown
+liquidSensor.Lock = LOCK
+liquidSensor.On = POWER
+display1.Setting = -1
+display2.Setting = -1
+display3.Setting = -1
+display1.On = POWER
+display2.On = POWER
+display3.On = POWER
+coolingValve.Lock = LOCK
+coolingValve.On = POWER
+d(LIQUID_PIPE_HEATER).Lock = LOCK
+d(LIQUID_PIPE_HEATER).On = POWER
+d(WALL_HEATER).Lock = Lock
+d(WALL_HEATER).On = POWER

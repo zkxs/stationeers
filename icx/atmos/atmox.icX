@@ -1,0 +1,66 @@
+use aliases
+
+# Constants
+const true = 1
+const LOCK = 1
+const FILTER_START_PRESSURE = 50 # pressure in kPa at which to begin filtering
+const FILTER_STOP_PRESSURE = 1 # pressure in kPa at which to stop filtering
+const MIX_PRESSURE = 200 = # pressure in kPa at which to start mixing
+const PREMIX_PRESSURE = 10000 = # pressure in kPa at which to start premixing
+
+# Device config
+alias wasteGas                 d0
+alias distroPremixGas          d1
+alias distroMixGas             d2
+alias filterApc                d3
+alias distroPremixMixer        d4
+alias distroMixMixer           d5
+
+# one-time setup code
+#wasteGas.Lock = LOCK
+#distroPremixGas.Lock = LOCK
+#distroMixGas.Lock = LOCK
+#filterApc.Lock = LOCK
+#distroPremixMixer.Lock = LOCK
+#distroMixMixer.Lock = LOCK
+
+# these automatically init to false
+var filtering
+var premixing
+var mixing
+
+# used for some boolean logic
+var tmp1
+var tmp2
+
+# main loop
+loop:
+    # ensure meters are on
+    wasteGas.On = true
+    distroPremixGas.On = true
+    distroMixGas.On = true
+
+    yield
+
+    # read pressure values
+    var wastePressure = wasteGas.Pressure
+    var distroMixPressure = distroMixGas.Pressure
+    var distroPremixPressure = distroPremixGas.Pressure
+
+    # calculate filtering state
+    # filtering = (wastePressure > FILTER_START_PRESSURE) || (filtering && wastePressure > FILTER_STOP_PRESSURE)
+    sgt tmp1 wastePressure FILTER_START_PRESSURE
+    sgt tmp2 wastePressure FILTER_STOP_PRESSURE
+    and tmp2 filtering tmp2
+    or filtering tmp1 tmp2
+
+    filterApc.On = filtering
+
+    # mixing = distroMixPressure < MIX_PRESSURE
+    slt mixing distroMixPressure MIX_PRESSURE
+    distroMixMixer.On = mixing
+
+    # premixing = distroPremixPressure < PREMIX_PRESSURE
+    slt premixing distroPremixPressure PREMIX_PRESSURE
+    distroPremixMixer.On = premixing
+j loop

@@ -1,0 +1,14 @@
+use loop
+var a = 0 
+example()
+var on = d1.Open
+d0.On = on
+
+function example
+    a = a + 2
+    foo()
+end
+
+function foo
+    a++
+end

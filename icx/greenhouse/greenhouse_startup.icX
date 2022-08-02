@@ -1,0 +1,49 @@
+# Constants
+const POWER = 1
+const LOCK = 1
+
+# Color codes
+const Blue   = 0
+const Gray   = 1
+const Green  = 2
+const Orange = 3
+const Red    = 4
+const Yellow = 5
+const White  = 6
+const Black  = 7
+const Brown  = 8
+const Khaki  = 9
+const Pink   = 10
+const Purple = 11
+
+# PrefabHash values
+const LIQUID_PIPE_HEATER = -287495560
+const WALL_HEATER = 24258244
+
+# Device config
+alias liquidSensor d0
+alias gasSensor    d1 # always on
+alias coolingValve d2
+alias display1     d3
+alias display2     d4
+alias display3     d5
+
+# Startup power
+liquidSensor.On = POWER
+display1.On = POWER
+display2.On = POWER
+display3.On = POWER
+coolingValve.On = 0
+yield
+
+# Startup settings
+liquidSensor.Lock = LOCK
+d(LIQUID_PIPE_HEATER).Lock = LOCK
+d(WALL_HEATER).Lock = LOCK
+display1.Color = Red
+display2.Color = Green
+display3.Color = Purple
+display1.Setting = -1
+display2.Setting = -1
+display3.Setting = -1
+coolingValve.Lock = LOCK
