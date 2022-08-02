@@ -1,20 +1,26 @@
 # Hardsuit controller
 # Manages AC, filter, helmet open/close, helmet lock/unlock
 
+use loop
+#use aliases
+
 # Constants
-const ZERO_CELSIUS = 273.15
-# -10C
-const MINIMUM_TEMPERATURE = 263 
-# +50C
-const MAXIMUM_TEMPERATURE = 323 
+const ZERO_CELSIUS = 273
+# -10C for real, but lady yells. So we'll do 1.
+const MINIMUM_TEMPERATURE = ZERO_CELSIUS + 1
+# +50C. Not sure where lady yells. We'll do 45
+const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 45
+# anything beneath this we treat as zero
+const LOW_PRESSURE = 1
 # 20 kPa, but any thing less than 90 is suss if your airmix is 23% ish oxygen
-const MINIMUM_PRESSURE = 90 
+const MINIMUM_PRESSURE = 90
 # 600 kPa, but anything more than 200 kPa is suss
-const MAXIMUM_PRESSURE = 200 
+const MAXIMUM_PRESSURE = 200
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
-const MAXIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE = 20
-const MINIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE = 2
+const MAXIMUM_OXYGEN_RATIO = 0.95
 const TARGET_OXYGEN_PARTIAL_PRESSURE = 101
+const ACCEPTABLE_MYSTERY_GAS = 0.001
+const EXPECTED_TOTAL_RATIO = 1 - ACCEPTABLE_MYSTERY_GAS
 
 # Device config
 alias suit   db
@@ -23,72 +29,96 @@ alias pack   d1
 
 # one-time setup
 
-# assume that it's 100% O2 inside the suit
-# set the target pressure
-suit.Pressure = TARGET_OXYGEN_PARTIAL_PRESSURE
+# safe to assume that it's 100% O2 inside the tank?
 
 # initialize persistent variables
 var filtering
 var helmetClosed
 
-# used for boolean logic
-var tmp1
-var tmp2
-
 # main loop
-loop:
-    var helmetPressure = helmet.Pressure
 
-    # get oxygen pressure (we don't need this presently)
-    #var helmetOxygenPressure = helmet.RatioOxygen
-    #helmetOxygenPressure = helmetPressure * helmetOxygenPressure
+# drive air release when helment is closed
+var helmetOpen = helmet.Open
+seqz helmetClosed helmetOpen
+suit.AirRelease = helmetClosed
 
-    # get CO2 pressure
-    var helmetCarbonDioxidePressure =  helmet.RatioCarbonDioxide
-    helmetCarbonDioxidePressure =  helmetPressure * helmetCarbonDioxidePressure
+# get oxygen pressure
+var helmetOxygenRatio = helmet.RatioOxygen
+var r15 = helmet.Pressure
+var helmetOxygenPressure = r15 * helmetOxygenRatio
 
-    # we can't turn the AC off, so instead...
-    # clamp temperature setting to safe range
-    var unsafe = 0
-    var temperature = suit.TemperatureExternal
-    if temperature < MINIMUM_TEMPERATURE
-        # outside is too cold
-        temperature = MINIMUM_TEMPERATURE
-        unsafe = 1
-    end
-    if temperature > MAXIMUM_TEMPERATURE
-        # outside is too hot
-        temperature = MAXIMUM_TEMPERATURE
-        unsafe = 1
-    end
+# This next bit is stupid.
+# I can't actually flush your helmet.
+# BUT, I can beep at you annoyingly until you do it yourself.
+r15 = helmet.RatioCarbonDioxide
+# sum of the two expected ratios
+add r15 r15 helmetOxygenRatio
+# will be set into the suit error
+move r14 0 
+bge r15 EXPECTED_TOTAL_RATIO goodRatio
+bnez helmetOpen goodRatio
+# if the ratio is bad and the helmet is closed, then flip error between 0 and 1
+    r15 = suit.Error
+    nor r14 r15 r15
+# skip to here if the ratio is good
+goodRatio:
+suit.Error = r14
 
-    var externalPressure = suit.PressureExternal
-    if externalPressure < MINIMUM_PRESSURE || externalPressure > MAXIMUM_PRESSURE
-        unsafe = 1
-    end
+# we can't turn the AC off, so instead...
+# clamp temperature setting to safe range
+var unsafe = 0
+var temperature
+var externalPressure = suit.PressureExternal
 
-    # check for if we need to filter
-    # filtering = (helmetCarbonDioxidePressure > MAXIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE) || (filtering && helmetCarbonDioxidePressure > MINIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE)
-    sgt tmp1 helmetCarbonDioxidePressure MAXIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE
-    sgt tmp2 helmetCarbonDioxidePressure MINIMUM_CARBON_DIOXIDE_PARTIAL_PRESSURE
-    and tmp2 filtering tmp2
-    or filtering tmp1 tmp2
-    suit.Filtration = filtering
+if externalPressure < LOW_PRESSURE
+    temperature = 0
+else
+    temperature = suit.TemperatureExternal
+end
 
-    # drive air release when helment is closed
-    var helmetOpen = helmet.Open
-    seqz helmetClosed helmetOpen
-    suit.AirRelease = helmetClosed
+# if temperature < MINIMUM_TEMPERATURE
+slt r15 temperature 274
+beqz r15 michif1exit
+    temperature = MINIMUM_TEMPERATURE
+    unsafe = 1
+michif1exit:
 
-    # unsafe external environment
-    or tmp1 unsafe helmetOpen
-    if tmp1 != 0
-        helmet.Lock = 0
-        yield
-        helmet.Open = 0
-        sleep 1
-    end
-    helmet.Lock = unsafe
+# if temperature > MAXIMUM_TEMPERATURE
+sgt r14 temperature 318
+beqz r14 michif2exit
+    temperature = MAXIMUM_TEMPERATURE
+    unsafe = 1
+michif2exit:
 
+# Suit.On = temperature < MINIMUM_TEMPERATURE || temperature > MAXIMUM_TEMPERATURE
+or r15 r14 r15
+suit.On = r15
+
+suit.TemperatureSetting = temperature
+
+
+if externalPressure < MINIMUM_PRESSURE || externalPressure > MAXIMUM_PRESSURE
+    unsafe = 1
+end
+
+# check for if we need to filter
+# filtering = (helmetOxygenPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE) || (filtering && helmetOxygenRatio < MAXIMUM_OXYGEN_RATIO) && helmetClosed
+slt r15 helmetOxygenPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
+slt r14 helmetOxygenRatio MAXIMUM_OXYGEN_RATIO
+and r14 filtering r14
+or filtering r15 r14
+and filtering filtering helmetClosed
+suit.Filtration = filtering
+
+# handle unsafe external environment
+and r15 unsafe helmetOpen
+# if unsafe && helmetOpen
+if r15 != 0
+    helmet.Lock = 0
     yield
-j loop
+    helmet.Open = 0
+    yield
+end
+helmet.Lock = unsafe
+
+yield

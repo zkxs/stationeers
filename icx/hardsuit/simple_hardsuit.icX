@@ -1,0 +1,10 @@
+use loop
+
+alias suit   db
+alias helmet d0
+alias pack   d1
+
+var toggle
+helmet.On = toggle
+nor toggle toggle toggle
+yield
