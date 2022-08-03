@@ -99,17 +99,18 @@ var filtering
 
 
 # Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
-var helmetOpen = helmet.Open
+brdns helmet 2
+    var helmetOpen = helmet.Open
 var helmetClosed
 seqz helmetClosed helmetOpen
 
 # get helmet pressure
-var internalPressure = helmet.Pressure
+var internalPressure = suit.Pressure
 
 # get partial pressures of the expected gasses
-var oxygenPartialPressure = helmet.RatioOxygen
+var oxygenPartialPressure = suit.RatioOxygen
 oxygenPartialPressure = helmetOxygenPartialPressure * internalPressure
-var carbonDioxidePartialPressure = helmet.RatioCarbonDioxide
+var carbonDioxidePartialPressure = suit.RatioCarbonDioxide
 carbonDioxidePartialPressure = carbonDioxidePartialPressure * internalPressure
 
 # This next bit is stupid.
@@ -126,14 +127,14 @@ r15 = internalPressure - r15
 # check each of the toxin partial pressures.
 # basically 3 of these:
 # toxinDetected |= ratio * pressure >= threshold
-r13 = helmet.RatioNitrousOxide
+r13 = suit.RatioNitrousOxide
 r13 = r13 * internalPressure
 sge r14 r13 MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE
-r13 = helmet.RatioPollutant
+r13 = suit.RatioPollutant
 r13 = r13 * internalPressure
 sge r13 r13 MAXIMUM_POLLUTANT_PARTIAL_PRESSURE
 or r14 r14 r13
-r13 = helmet.RatioVolatiles
+r13 = suit.RatioVolatiles
 r13 = r13 * internalPressure
 sge r13 r13 MAXIMUM_VOLATILES_PARTIAL_PRESSURE
 or r14 r14 r13
@@ -236,7 +237,8 @@ beqz r15 skip_helmet_close
 skip_helmet_close:
 
 # finally, set the helmet to the desired lock state
-helmet.Lock = unsafe
+brdns helmet 2
+    helmet.Lock = unsafe
 
 # Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
 # This is actually a bug, but the devs like it so they're leaving it in?
