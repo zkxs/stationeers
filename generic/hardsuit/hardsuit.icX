@@ -1,4 +1,4 @@
-# runtime's Hardsuit controller v1.1.0
+# runtime's Hardsuit controller v2.0.0
 
 ############
 # FEATURES #
@@ -62,15 +62,21 @@ const MINIMUM_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRM
 const MAXIMUM_PRESSURE = 200
 # how much non-O2 non-C02 gas do we allow?
 const ACCEPTABLE_MYSTERY_GAS = 0.001
-const EXPECTED_TOTAL_RATIO = 1 - ACCEPTABLE_MYSTERY_GAS
+# how much of the gas in a closed helmet should be accounted for (O2 and CO2 are the only expected gasses)
+const GOOD_GAS_EXPECTED_RATIO = 1 - ACCEPTABLE_MYSTERY_GAS
 # normal release pressure in kPa. Min is 0, max is 202.65
 const DEFAULT_PRESSURE_SETTING = 101.325
-# maximum volatiles in helmet before we scream
+# maximum volatiles ratio in 1atm helmet before we scream
 const MAXIMUM_VOLATILES_RATIO = 0.01
-# maximum volatiles in helmet before we scream
+const MAXIMUM_VOLATILES_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_VOLATILES_RATIO
+# maximum volatiles ratio in 1atm helmet before we scream
 const MAXIMUM_POLLUTANT_RATIO = 0.01
-# maximum nitrous oxide in helmet before we scream
+const MAXIMUM_POLLUTANT_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_POLLUTANT_RATIO
+# maximum nitrous oxide ratio in 1atm helmet before we scream
 const MAXIMUM_NITROUS_OXIDE_RATIO = 0.01
+const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_NITROUS_OXIDE_RATIO
+# we must hit this pressure before we consider our flush complete
+const FLUSH_PRESSURE_TARGET = 1
 
 ##################
 # Device aliases #
@@ -104,36 +110,50 @@ suit.AirRelease = helmetClosed
 # get oxygen partial pressure
 var helmetOxygenRatio = helmet.RatioOxygen
 
+# get helmet pressure
+var helmetPressure = helmet.Pressure
+
 # This next bit is stupid.
 # I can't actually flush your helmet.
 # BUT, I can beep at you annoyingly until you do it yourself.
+# Also, I can do a horrible "fake" flush that is very slow.
 
 # calculate sum of the two good ratios
 r15 = helmet.RatioCarbonDioxide
 r15 = r15 + helmetOxygenRatio
+# r15 is now totalGoodRatio
 
-# calculate sum of the bad ratios
+# check each of the toxin partial pressures.
+# basically 3 of these:
+# toxinDetected |= ratio * pressure >= threshold
 r13 = helmet.RatioNitrousOxide
+mul r13 r13 helmetPressure
+sge r14 r13 MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE
 r13 = helmet.RatioPollutant
+mul r13 r13 helmetPressure
+sge r13 r13 MAXIMUM_POLLUTANT_PARTIAL_PRESSURE
+or r14 r14 r13
 r13 = helmet.RatioVolatiles
+mul r13 r13 helmetPressure
+sge r13 r13 MAXIMUM_VOLATILES_PARTIAL_PRESSURE
+or r14 r14 r13
+# r14 is now toxinDetected
 
-# if (totalGoodRatio >= EXPECTED_TOTAL_RATIO) || helmetOpen
-#     suit.Error = 0
-# else
+# if ((totalGoodRatio < GOOD_GAS_EXPECTED_RATIO) && helmetClosed) || toxinDetected
 #     suit.Error = !suit.Error
-
-# will be set into the suit error
-move r12 0
-# check if the ratio is good
-bge r15 EXPECTED_TOTAL_RATIO good_ratio
-# check if the helmet is open
-bnez helmetOpen good_ratio
-# if the ratio is bad and the helmet is closed, then flip error between 0 and 1
-    r15 = suit.Error
-    nor r12 r15 r15
-# skip to here if the ratio is good or the helmet is open
-good_ratio:
-suit.Error = r12
+#     flushing = 1
+# else
+#     suit.Error = 0
+slt r13 r15 GOOD_GAS_EXPECTED_RATIO
+and r13 r13 helmetClosed
+or r13 r13 r14
+# selection done, we no longer need r14 or r15
+r15 = suit.Error
+# r15 = !r15
+seqz r15 r15
+and r15 r15 r13
+suit.Error = r15
+or flushing flushing r13
 
 # clamp AC temperature setting to safe range
 var unsafe = 0
@@ -156,7 +176,7 @@ select temperature r15 0 r14
 #     unsafe = 1
 slt r15 temperature 274
 select temperature r15 MINIMUM_TEMPERATURE temperature
-select unsafe r15 1 unsafe
+or unsafe unsafe r15
 
 # clamp temperature to MAXIMUM_TEMPERATURE
 # if temperature > MAXIMUM_TEMPERATURE
@@ -164,7 +184,7 @@ select unsafe r15 1 unsafe
 #     unsafe = 1
 sgt r14 temperature 318
 select temperature r14 MAXIMUM_TEMPERATURE temperature
-select unsafe r14 1 unsafe
+or unsafe unsafe r14
 
 # NOTE THAT WE USE r15 AND r14 FROM THE PREVIOUS BLOCK HERE!!! DO NOT REORDER!
 # I don't trust the AC strength enough to toggle it on and off over time
@@ -182,15 +202,14 @@ suit.TemperatureSetting = temperature
 slt r15 externalPressure MINIMUM_PRESSURE
 sgt r14 externalPressure MAXIMUM_PRESSURE
 or r13 r15 r14
-select unsafe r13 1 unsafe
+or unsafe unsafe r13
 
 # check for if we need to filter
 # This will start filtering once oxygen partial pressure is at the safety threshold
 # This will stop filtering once the helmet is MAXIMUM_OXYGEN_RATIO% oxygen
 # It also stops filtering when the helmet is open.
 # calculate helmetOxygenPressure and store it as r15
-r15 = helmet.Pressure
-r15 = r15 * helmetOxygenRatio
+r15 = helmetPressure * helmetOxygenRatio
 # filtering = (helmetOxygenPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE) || (filtering && helmetOxygenRatio < MAXIMUM_OXYGEN_RATIO) && helmetClosed
 slt r15 r15 MINIMUM_OXYGEN_PARTIAL_PRESSURE
 slt r14 helmetOxygenRatio MAXIMUM_OXYGEN_RATIO
@@ -199,8 +218,7 @@ or filtering r15 r14
 and filtering filtering helmetClosed
 
 # Fuck with pressure while filtering to avoid dumping O2 to waste
-r15 = suit.PressureExternal
-select r15 filtering r15 DEFAULT_PRESSURE_SETTING
+select r15 filtering externalPressure DEFAULT_PRESSURE_SETTING
 suit.PressureSetting = r15
 
 # Drive the filter state
@@ -216,6 +234,8 @@ beqz r15 skip_helmet_close
     # then close the helmet
     helmet.Open = 0
     yield
+    # this is weird because we steal control from our for 2 ticks to do this.
+    # however, getting that helmet closed is our absolute highest priority.
 skip_helmet_close:
 
 # finally, set the helmet to the desired lock state
