@@ -1,4 +1,4 @@
-# runtime's Hardsuit controller v1.0.0
+# runtime's Hardsuit controller v1.1.0
 
 ############
 # FEATURES #
@@ -7,6 +7,7 @@
 # If the environment is probably unsafe, it closes and locks your helmet.
 # Not all types of unsafe environment can be detected. Keeping your helmet closed is on you!
 # It will micromanage your filter, greatly prolonging its lifespan.
+# Filtering will temporarily fuck with pressure setting to avoid dumping O2 to waste.
 # It will turn the AC off if the temperature is safe.
 # Otherwise, it will set your AC to the most extreme but still safe value.
 # It will turn off air flow when your helmet is open.
@@ -16,8 +17,8 @@
 #############
 # icX sometimes generates stupid code for ifs:
 # Sometimes it just wastes instructions,but sometimes it borks the output completely
-# and generates invalid ic10. For this reason most of my branch has been done in
-# straight ic10 vs using if. I prefix my manual if labels with a '_'.
+# and generates invalid ic10. For this reason most of my branching has been done in
+# straight ic10 vs using if.
 #
 # icX uses lower registers for variables and higher registers for temporary results.
 # We can actually sneak our own usage out of the high registers without breaking icX.
@@ -33,31 +34,43 @@
 use loop
 
 # This is useful for debugging ic10 generation
-#use aliases
+use aliases
+use comments
+# cannot `use constants` if you use arithmetic in constants
 
 #############
 # Constants #
 #############
 
-# Used for celsius/kelvin conversion. Rounded for your pleasure.
-const ZERO_CELSIUS = 273
-# -10C for real, but lady yells. So we'll do 1.
+# Used for celsius/kelvin conversion.
+const ZERO_CELSIUS = 273.15
+# -10C for real, but suit lady yells. So we'll do 1.
 const MINIMUM_TEMPERATURE = ZERO_CELSIUS + 1
-# +50C for real. Not sure if lady yells. We'll do 39
+# +50C for real. Not sure if suit lady yells. We'll do 39.
 const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 39
 # anything beneath this we treat as zero
 const LOW_PRESSURE = 1
-# 20 kPa, but any thing less than 90 is suss if your airmix is 23% ish oxygen
-const MINIMUM_PRESSURE = 90
-# 600 kPa, but anything more than 200 kPa is suss
-const MAXIMUM_PRESSURE = 200
 # if we drop below this partial pressure, we need to start filtering
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
-# if we have at least this percent of oxygen, we're good to stop filtering
+# if we have at least this ratio of oxygen, we're good to stop filtering
 const MAXIMUM_OXYGEN_RATIO = 0.95
+# Expected minimum oxygen ratio you'll encounter
+const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
+# 20 kPa for 100% O2, but anything less than MINIMUM_PRESSURE is bad for airmix
+const MINIMUM_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
+# 600 kPa, but anything more than 200 kPa is suss
+const MAXIMUM_PRESSURE = 200
 # how much non-O2 non-C02 gas do we allow?
 const ACCEPTABLE_MYSTERY_GAS = 0.001
 const EXPECTED_TOTAL_RATIO = 1 - ACCEPTABLE_MYSTERY_GAS
+# normal release pressure in kPa. Min is 0, max is 202.65
+const DEFAULT_PRESSURE_SETTING = 101.325
+# maximum volatiles in helmet before we scream
+const MAXIMUM_VOLATILES_RATIO = 0.01
+# maximum volatiles in helmet before we scream
+const MAXIMUM_POLLUTANT_RATIO = 0.01
+# maximum nitrous oxide in helmet before we scream
+const MAXIMUM_NITROUS_OXIDE_RATIO = 0.01
 
 ##################
 # Device aliases #
@@ -71,15 +84,20 @@ alias pack   d1
 # can I actually test that?
 # in practice if the tank is not 100% O2 the program will yell at you due to the bad air detection.
 
-# initialize persistent variables
+# are we currently flushing?
+var flushing
+
+# are we currently filtering?
 var filtering
+
+# is the helmet closed?
+# Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
 var helmetClosed
 
 # main loop starts here, and ends at EOF
 
 # drive air release = !helmetOpen
 var helmetOpen = helmet.Open
-# we save both helmetOpen and helmetClosed for later as we'll need them
 seqz helmetClosed helmetOpen
 suit.AirRelease = helmetClosed
 
@@ -89,21 +107,33 @@ var helmetOxygenRatio = helmet.RatioOxygen
 # This next bit is stupid.
 # I can't actually flush your helmet.
 # BUT, I can beep at you annoyingly until you do it yourself.
+
+# calculate sum of the two good ratios
 r15 = helmet.RatioCarbonDioxide
-# sum of the two expected ratios
 r15 = r15 + helmetOxygenRatio
+
+# calculate sum of the bad ratios
+r13 = helmet.RatioNitrousOxide
+r13 = helmet.RatioPollutant
+r13 = helmet.RatioVolatiles
+
+# if (totalGoodRatio >= EXPECTED_TOTAL_RATIO) || helmetOpen
+#     suit.Error = 0
+# else
+#     suit.Error = !suit.Error
+
 # will be set into the suit error
-move r14 0
-# check if te ratio is good
-bge r15 EXPECTED_TOTAL_RATIO goodRatio
+move r12 0
+# check if the ratio is good
+bge r15 EXPECTED_TOTAL_RATIO good_ratio
 # check if the helmet is open
-bnez helmetOpen goodRatio
+bnez helmetOpen good_ratio
 # if the ratio is bad and the helmet is closed, then flip error between 0 and 1
     r15 = suit.Error
-    nor r14 r15 r15
+    nor r12 r15 r15
 # skip to here if the ratio is good or the helmet is open
-goodRatio:
-suit.Error = r14
+good_ratio:
+suit.Error = r12
 
 # clamp AC temperature setting to safe range
 var unsafe = 0
@@ -111,31 +141,32 @@ var temperature
 var externalPressure = suit.PressureExternal
 
 # handle temperature in vacuum-like conditions
-# if externalPressure < LOW_PRESSURE
-bge externalPressure LOW_PRESSURE _if0else
-    temperature = 0
+# 4 instructions for an if/else. compare,load,select is 3.
+# if externalPressure >= LOW_PRESSURE
+#     temperature = 0
 # else
-j _if0exit
-_if0else:
-    temperature = suit.TemperatureExternal
-_if0exit:
+#     temperature = suit.TemperatureExternal
+sge r15 externalPressure LOW_PRESSURE
+r14 = suit.TemperatureExternal
+select temperature r15 0 r14
 
 # clamp temperature to MINIMUM_TEMPERATURE
 # if temperature < MINIMUM_TEMPERATURE
+#     temperature = MINIMUM_TEMPERATURE
+#     unsafe = 1
 slt r15 temperature 274
-beqz r15 _if1exit
-    temperature = MINIMUM_TEMPERATURE
-    unsafe = 1
-_if1exit:
+select temperature r15 MINIMUM_TEMPERATURE temperature
+select unsafe r15 1 unsafe
 
 # clamp temperature to MAXIMUM_TEMPERATURE
 # if temperature > MAXIMUM_TEMPERATURE
+#     temperature = MAXIMUM_TEMPERATURE
+#     unsafe = 1
 sgt r14 temperature 318
-beqz r14 _if2exit
-    temperature = MAXIMUM_TEMPERATURE
-    unsafe = 1
-_if2exit:
+select temperature r14 MAXIMUM_TEMPERATURE temperature
+select unsafe r14 1 unsafe
 
+# NOTE THAT WE USE r15 AND r14 FROM THE PREVIOUS BLOCK HERE!!! DO NOT REORDER!
 # I don't trust the AC strength enough to toggle it on and off over time
 # If external temperature is in good range, turn the AC off
 # Suit.On = temperature < MINIMUM_TEMPERATURE || temperature > MAXIMUM_TEMPERATURE
@@ -145,10 +176,13 @@ suit.On = r15
 # Set the target temperature to our clamped external temperature
 suit.TemperatureSetting = temperature
 
-# check if pressure is outside of safe range. This ic10 actually generated fine.
-if externalPressure < MINIMUM_PRESSURE || externalPressure > MAXIMUM_PRESSURE
-    unsafe = 1
-end
+# check if pressure is outside of safe range.
+# if externalPressure < MINIMUM_PRESSURE || externalPressure > MAXIMUM_PRESSURE
+#     unsafe = 1
+slt r15 externalPressure MINIMUM_PRESSURE
+sgt r14 externalPressure MAXIMUM_PRESSURE
+or r13 r15 r14
+select unsafe r13 1 unsafe
 
 # check for if we need to filter
 # This will start filtering once oxygen partial pressure is at the safety threshold
@@ -163,19 +197,26 @@ slt r14 helmetOxygenRatio MAXIMUM_OXYGEN_RATIO
 and r14 filtering r14
 or filtering r15 r14
 and filtering filtering helmetClosed
+
+# Fuck with pressure while filtering to avoid dumping O2 to waste
+r15 = suit.PressureExternal
+select r15 filtering r15 DEFAULT_PRESSURE_SETTING
+suit.PressureSetting = r15
+
+# Drive the filter state
 suit.Filtration = filtering
 
 # handle unsafe external environment
 # if unsafe && helmetOpen
 and r15 unsafe helmetOpen
-beqz r15 _if3exit
+beqz r15 skip_helmet_close
     # unlock the helmet
     helmet.Lock = 0
     yield
-    # then open the helmet
+    # then close the helmet
     helmet.Open = 0
     yield
-_if3exit:
+skip_helmet_close:
 
 # finally, set the helmet to the desired lock state
 helmet.Lock = unsafe
