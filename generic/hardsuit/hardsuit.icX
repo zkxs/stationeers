@@ -3,20 +3,37 @@
 ############
 # FEATURES #
 ############
-# If your helmet needs flushing, it will beep at you.
-# If the environment is probably unsafe, it closes and locks your helmet.
-# Not all types of unsafe environment can be detected. Keeping your helmet closed is on you!
-# It will micromanage your filter, greatly prolonging its lifespan.
-# Filtering will temporarily fuck with pressure setting to avoid dumping O2 to waste.
-# It will turn the AC off if the temperature is safe.
-# Otherwise, it will set your AC to the most extreme but still safe value.
-# It will turn off air flow when your helmet is open.
+# 1. If your suit needs flushing, it will beep at you while autoflushing.
+#    An autoflush is slower, but more precise, than a manual flush.
+#    Feel free to manually flush too!
+# 2. If the environment is appears unsafe, it closes and locks your helmet.
+#    Not all types of unsafe environment can be detected. Keeping your helmet closed is on you!
+# 3. It will micromanage your filter, greatly prolonging its lifespan.
+#    Filtering will temporarily fuck with release and pressure settings to avoid dumping O2
+#    to waste due to a stationeers bug.
+# 4. It will turn the AC off if the external temperature is safe.
+#    Otherwise, it will set your AC to the most extreme but still safe value.
+# 5. It will turn off air flow when your helmet is open.
+
+###############
+# ASSUMPTIONS #
+###############
+#  1. Your tank is 100% oxygen
+#  2. You inhale oxygen
+#  3. You exhale CO2
+#  4. Your suit is loaded exclusively with CO2 filters
+#  5. CO2 is not toxic in any concentration (the devs may change this soon)
+#  6. You pressurize your breathable rooms between 1 and 2 atmospheres
+#  7. A 1 atmosphere breathable room contains at least 22% oxygen
+#  8. If you are not wearing a hardsuit helmet, you must be wearing a closed normal helmet.
+#  9. You would prefer a brief stint in vacuum to being poisoned
+# 10. You won't open your helmet in a bad atmosphere, even if it's unlocked.
 
 #############
 # icX notes #
 #############
-# icX sometimes generates stupid code for ifs:
-# Sometimes it just wastes instructions,but sometimes it borks the output completely
+# icX usually generates stupid code for ifs:
+# Sometimes it just wastes instructions, but sometimes it borks the output completely
 # and generates invalid ic10. For this reason most of my branching has been done in
 # straight ic10 vs using if.
 #
@@ -56,26 +73,26 @@ const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
 const TARGET_CO2_PARTIAL_PRESSURE = 1
 # Expected minimum oxygen ratio you'll encounter
 const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
-# 20 kPa for 100% O2, but anything less than MINIMUM_PRESSURE is bad for airmix
-const MINIMUM_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
+# 20 kPa for 100% O2, but anything less than MINIMUM_ENVIRONMENT_PRESSURE is bad for airmix
+const MINIMUM_ENVIRONMENT_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
 # 600 kPa, but anything more than 200 kPa is suss
-const MAXIMUM_PRESSURE = 200
+const MAXIMUM_ENVIRONMENT_PRESSURE = 202.65
 # normal release pressure in kPa
 const DEFAULT_PRESSURE_SETTING = 101.325
 # minimum release pressure in kPa
-const MINIMUM_PRESSURE_SETTING = 0
+const MINIMUM_ENVIRONMENT_PRESSURE_SETTING = 0
 # maximum release pressure in kPa
-const MAXIMUM_PRESSURE_SETTING = 202.65
+const MAXIMUM_ENVIRONMENT_PRESSURE_SETTING = 202.65
 # how much non-O2 non-C02 gas do we allow?
 const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
 const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
-# maximum volatiles ratio in 1atm helmet before we scream
+# maximum volatiles ratio in 1 atm helmet before we scream
 const MAXIMUM_VOLATILES_RATIO = 0.01
 const MAXIMUM_VOLATILES_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_VOLATILES_RATIO
-# maximum volatiles ratio in 1atm helmet before we scream
+# maximum volatiles ratio in 1 atm helmet before we scream
 const MAXIMUM_POLLUTANT_RATIO = 0.01
 const MAXIMUM_POLLUTANT_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_POLLUTANT_RATIO
-# maximum nitrous oxide ratio in 1atm helmet before we scream
+# maximum nitrous oxide ratio in 1 atm helmet before we scream
 const MAXIMUM_NITROUS_OXIDE_RATIO = 0.01
 const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_NITROUS_OXIDE_RATIO
 
@@ -86,10 +103,6 @@ const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMU
 alias suit   db
 alias helmet d0
 alias pack   d1
-
-# is it safe to assume that it's 100% O2 inside the tank?
-# can I actually test that?
-# in practice if the tank is not 100% O2 the program will yell at you due to the bad air detection.
 
 # are we currently flushing?
 var flushing
@@ -109,7 +122,7 @@ var internalPressure = suit.Pressure
 
 # get partial pressures of the expected gasses
 var oxygenPartialPressure = suit.RatioOxygen
-oxygenPartialPressure = helmetOxygenPartialPressure * internalPressure
+oxygenPartialPressure = oxygenPartialPressure * internalPressure
 var carbonDioxidePartialPressure = suit.RatioCarbonDioxide
 carbonDioxidePartialPressure = carbonDioxidePartialPressure * internalPressure
 
@@ -197,10 +210,10 @@ suit.On = r15
 suit.TemperatureSetting = temperature
 
 # check if pressure is outside of safe range.
-# if externalPressure < MINIMUM_PRESSURE || externalPressure > MAXIMUM_PRESSURE
+# if externalPressure < MINIMUM_ENVIRONMENT_PRESSURE || externalPressure > MAXIMUM_ENVIRONMENT_PRESSURE
 #     unsafe = 1
-slt r15 externalPressure MINIMUM_PRESSURE
-sgt r14 externalPressure MAXIMUM_PRESSURE
+slt r15 externalPressure MINIMUM_ENVIRONMENT_PRESSURE
+sgt r14 externalPressure MAXIMUM_ENVIRONMENT_PRESSURE
 or r13 r15 r14
 or unsafe unsafe r13
 
@@ -225,7 +238,7 @@ suit.Filtration = r15
 # if (unsafe || flushing) && helmetOpen
 or r15 unsafe flushing
 and r15 r15 helmetOpen
-beqz r15 skip_helmet_close
+beqz r15 helmet_closed
     # unlock the helmet
     helmet.Lock = 0
     yield
@@ -234,7 +247,7 @@ beqz r15 skip_helmet_close
     yield
     # this is weird because we steal control from our for 2 ticks to do this.
     # however, getting that helmet closed is our absolute highest priority.
-skip_helmet_close:
+helmet_closed:
 
 # finally, set the helmet to the desired lock state
 brdns helmet 2
@@ -242,9 +255,9 @@ brdns helmet 2
 
 # Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
 # This is actually a bug, but the devs like it so they're leaving it in?
-select r15 filtering MAXIMUM_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
+select r15 filtering MAXIMUM_ENVIRONMENT_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
 # Handle autoflush
-select r15 flushing MINIMUM_PRESSURE_SETTING r15
+select r15 flushing MINIMUM_ENVIRONMENT_PRESSURE_SETTING r15
 # r15 is now our desired pressure setting
 suit.PressureSetting = r15
 
