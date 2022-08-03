@@ -60,8 +60,12 @@ const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
 const MINIMUM_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
 # 600 kPa, but anything more than 200 kPa is suss
 const MAXIMUM_PRESSURE = 200
-# normal release pressure in kPa. Min is 0, max is 202.65
+# normal release pressure in kPa
 const DEFAULT_PRESSURE_SETTING = 101.325
+# minimum release pressure in kPa
+const MINIMUM_PRESSURE_SETTING = 0
+# maximum release pressure in kPa
+const MAXIMUM_PRESSURE_SETTING = 202.65
 # how much non-O2 non-C02 gas do we allow?
 const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
 const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
@@ -93,16 +97,11 @@ var flushing
 # are we currently filtering?
 var filtering
 
-# is the helmet closed?
+
 # Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
-var helmetClosed
-
-# main loop starts here, and ends at EOF
-
-# drive air release = !helmetOpen
 var helmetOpen = helmet.Open
+var helmetClosed
 seqz helmetClosed helmetOpen
-suit.AirRelease = helmetClosed
 
 # get helmet pressure
 var internalPressure = helmet.Pressure
@@ -216,7 +215,10 @@ or r15 r15 r14
 and filtering r15 helmetClosed
 
 # Drive the filter state
-suit.Filtration = filtering
+seqz r15 flushing
+# also don't filter while flushing. Flushing takes priority.
+and r15 r15 filtering
+suit.Filtration = r15
 
 # handle unsafe external environment
 # if (unsafe || flushing) && helmetOpen
@@ -236,13 +238,18 @@ skip_helmet_close:
 # finally, set the helmet to the desired lock state
 helmet.Lock = unsafe
 
-# Fuck with pressure while filtering to avoid dumping O2 to waste
-select r15 filtering externalPressure DEFAULT_PRESSURE_SETTING
-
+# Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
+# This is actually a bug, but the devs like it so they're leaving it in?
+select r15 filtering MAXIMUM_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
 # Handle autoflush
-select r15 flushing 0 r15
-
+select r15 flushing MINIMUM_PRESSURE_SETTING r15
 # r15 is now our desired pressure setting
 suit.PressureSetting = r15
+
+# suit.AirRelease = helmetClosed || !filtering
+# it doesn't matter if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
+seqz r15 filtering
+or r15 helmetClosed r15
+suit.AirRelease = r15
 
 yield
