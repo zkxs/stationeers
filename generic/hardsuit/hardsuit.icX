@@ -23,11 +23,12 @@
 #  3. You exhale CO2
 #  4. Your suit is loaded exclusively with CO2 filters
 #  5. CO2 is not toxic in any concentration (the devs may change this soon)
-#  6. You pressurize your breathable rooms between 1 and 2 atmospheres
-#  7. A 1 atmosphere breathable room contains at least 22% oxygen
-#  8. If you are not wearing a hardsuit helmet, you must be wearing a closed normal helmet.
-#  9. You would prefer a brief stint in vacuum to being poisoned
-# 10. You won't open your helmet in a bad atmosphere, even if it's unlocked.
+#  6. O2 is not tooxic in any concentration (the devs may change this soon)
+#  7. You pressurize your breathable rooms between 1 and 2 atmospheres
+#  8. A 1 atmosphere breathable room contains at least 22% oxygen
+#  9. If you are not wearing a hardsuit helmet, you must be wearing a closed normal helmet.
+# 10. You would prefer a brief stint in vacuum to being poisoned
+# 11. You won't open your helmet in a bad atmosphere, even if it's unlocked.
 
 #############
 # icX notes #
@@ -87,13 +88,13 @@ const MAXIMUM_ENVIRONMENT_PRESSURE_SETTING = 202.65
 const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
 const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
 # maximum volatiles ratio in 1 atm helmet before we scream
-const MAXIMUM_VOLATILES_RATIO = 0.01
+const MAXIMUM_VOLATILES_RATIO = 0.005
 const MAXIMUM_VOLATILES_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_VOLATILES_RATIO
 # maximum volatiles ratio in 1 atm helmet before we scream
-const MAXIMUM_POLLUTANT_RATIO = 0.01
+const MAXIMUM_POLLUTANT_RATIO = 0.0001
 const MAXIMUM_POLLUTANT_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_POLLUTANT_RATIO
 # maximum nitrous oxide ratio in 1 atm helmet before we scream
-const MAXIMUM_NITROUS_OXIDE_RATIO = 0.01
+const MAXIMUM_NITROUS_OXIDE_RATIO = 0.0001
 const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_NITROUS_OXIDE_RATIO
 
 ##################
