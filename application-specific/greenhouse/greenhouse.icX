@@ -2,10 +2,16 @@ use loop
 
 # Constants
 const ZERO_CELSIUS = 273.15
-const MIN_TEMPERATURE = ZERO_CELSIUS + 20 # min temp of room before we panic
-const TARGET_TEMPERATURE_MIN = ZERO_CELSIUS + 22 # bottom of target temperature range
-const TARGET_TEMPERATURE_MAX = ZERO_CELSIUS + 38 # top of target temperature range
-const MAX_TEMPERATURE = ZERO_CELSIUS + 40 # max temp of water
+# min temp of room before we panic
+const MIN_ROOM_TEMPERATURE = ZERO_CELSIUS + 20 
+# bottom of target temperature range
+const TARGET_TEMPERATURE_MIN = ZERO_CELSIUS + 21
+# top of target temperature range
+const TARGET_TEMPERATURE_MAX = ZERO_CELSIUS + 39
+# min temp of water for connection to cooling
+const MIN_WATER_TEMPERATURE = ZERO_CELSIUS + 33
+# max temp of water for pipe heaters
+const MAX_WATER_TEMPERATURE = ZERO_CELSIUS + 40
 
 # PrefabHash values
 const LIQUID_PIPE_HEATER = -287495560
@@ -31,7 +37,7 @@ var waterTemperature = liquidSensor.Temperature
 
 # handle low temp
 var displaySetting
-if roomTemperature < TARGET_TEMPERATURE_MIN && waterTemperature < MAX_TEMPERATURE
+if roomTemperature < TARGET_TEMPERATURE_MIN && waterTemperature < MAX_WATER_TEMPERATURE
     # room is cold
     d(LIQUID_PIPE_HEATER).On = 1
     displaySetting = 1
@@ -41,7 +47,7 @@ else
         d(LIQUID_PIPE_HEATER).On = 0
 
         # handle water cooling
-        if waterTemperature > MAX_TEMPERATURE
+        if waterTemperature > MIN_WATER_TEMPERATURE
             coolingValve.On = 1
             displaySetting = 3
         else
@@ -57,7 +63,7 @@ else
 end
 
 # handle critical low temp
-if roomTemperature < MIN_TEMPERATURE
+if roomTemperature < MIN_ROOM_TEMPERATURE
     d(WALL_HEATER).On = 1
     displaySetting = 2
 else

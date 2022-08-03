@@ -1,11 +1,11 @@
-use aliases
+#use aliases
 
 # Constants
 const true = 1
 const LOCK = 1
 const FILTER_START_PRESSURE = 50 # pressure in kPa at which to begin filtering
 const FILTER_STOP_PRESSURE = 1 # pressure in kPa at which to stop filtering
-const MIX_PRESSURE = 200 = # pressure in kPa at which to start mixing
+const MIX_PRESSURE = 350 = # pressure in kPa at which to start mixing
 const PREMIX_PRESSURE = 10000 = # pressure in kPa at which to start premixing
 
 # Device config
