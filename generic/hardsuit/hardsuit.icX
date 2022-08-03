@@ -34,8 +34,8 @@
 use loop
 
 # This is useful for debugging ic10 generation
-use aliases
-use comments
+#use aliases
+#use comments
 # cannot `use constants` if you use arithmetic in constants
 
 #############
@@ -52,20 +52,19 @@ const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 39
 const LOW_PRESSURE = 1
 # if we drop below this partial pressure, we need to start filtering
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
-# if we have at least this ratio of oxygen, we're good to stop filtering
-const MAXIMUM_OXYGEN_RATIO = 0.95
+# if we have less than this partial pressure of CO2, we're good to stop filtering
+const TARGET_CO2_PARTIAL_PRESSURE = 1
 # Expected minimum oxygen ratio you'll encounter
 const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
 # 20 kPa for 100% O2, but anything less than MINIMUM_PRESSURE is bad for airmix
 const MINIMUM_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
 # 600 kPa, but anything more than 200 kPa is suss
 const MAXIMUM_PRESSURE = 200
-# how much non-O2 non-C02 gas do we allow?
-const ACCEPTABLE_MYSTERY_GAS = 0.001
-# how much of the gas in a closed helmet should be accounted for (O2 and CO2 are the only expected gasses)
-const GOOD_GAS_EXPECTED_RATIO = 1 - ACCEPTABLE_MYSTERY_GAS
 # normal release pressure in kPa. Min is 0, max is 202.65
 const DEFAULT_PRESSURE_SETTING = 101.325
+# how much non-O2 non-C02 gas do we allow?
+const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
+const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
 # maximum volatiles ratio in 1atm helmet before we scream
 const MAXIMUM_VOLATILES_RATIO = 0.01
 const MAXIMUM_VOLATILES_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_VOLATILES_RATIO
@@ -75,8 +74,6 @@ const MAXIMUM_POLLUTANT_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_PO
 # maximum nitrous oxide ratio in 1atm helmet before we scream
 const MAXIMUM_NITROUS_OXIDE_RATIO = 0.01
 const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_NITROUS_OXIDE_RATIO
-# we must hit this pressure before we consider our flush complete
-const FLUSH_PRESSURE_TARGET = 1
 
 ##################
 # Device aliases #
@@ -107,53 +104,56 @@ var helmetOpen = helmet.Open
 seqz helmetClosed helmetOpen
 suit.AirRelease = helmetClosed
 
-# get oxygen partial pressure
-var helmetOxygenRatio = helmet.RatioOxygen
-
 # get helmet pressure
-var helmetPressure = helmet.Pressure
+var internalPressure = helmet.Pressure
+
+# get partial pressures of the expected gasses
+var oxygenPartialPressure = helmet.RatioOxygen
+oxygenPartialPressure = helmetOxygenPartialPressure * internalPressure
+var carbonDioxidePartialPressure = helmet.RatioCarbonDioxide
+carbonDioxidePartialPressure = carbonDioxidePartialPressure * internalPressure
 
 # This next bit is stupid.
 # I can't actually flush your helmet.
 # BUT, I can beep at you annoyingly until you do it yourself.
 # Also, I can do a horrible "fake" flush that is very slow.
 
-# calculate sum of the two good ratios
-r15 = helmet.RatioCarbonDioxide
-r15 = r15 + helmetOxygenRatio
-# r15 is now totalGoodRatio
+# calculate mysteryGasPressure
+r15 = oxygenPartialPressure + carbonDioxidePartialPressure
+# r15 is now totalGoodPressure
+r15 = internalPressure - r15
+# r15 is now mysteryGasPressure
 
 # check each of the toxin partial pressures.
 # basically 3 of these:
 # toxinDetected |= ratio * pressure >= threshold
 r13 = helmet.RatioNitrousOxide
-mul r13 r13 helmetPressure
+r13 = r13 * internalPressure
 sge r14 r13 MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE
 r13 = helmet.RatioPollutant
-mul r13 r13 helmetPressure
+r13 = r13 * internalPressure
 sge r13 r13 MAXIMUM_POLLUTANT_PARTIAL_PRESSURE
 or r14 r14 r13
 r13 = helmet.RatioVolatiles
-mul r13 r13 helmetPressure
+r13 = r13 * internalPressure
 sge r13 r13 MAXIMUM_VOLATILES_PARTIAL_PRESSURE
 or r14 r14 r13
-# r14 is now toxinDetected
+# r14 is now toxinDetected, we no longer need r13
 
-# if ((totalGoodRatio < GOOD_GAS_EXPECTED_RATIO) && helmetClosed) || toxinDetected
+# flushing = ((mysteryGasPressure > MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE) && helmetClosed) || toxinDetected
+# if flushing
 #     suit.Error = !suit.Error
-#     flushing = 1
 # else
 #     suit.Error = 0
-slt r13 r15 GOOD_GAS_EXPECTED_RATIO
-and r13 r13 helmetClosed
-or r13 r13 r14
+sgt flushing r15 MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE
+and flushing flushing helmetClosed
+or flushing flushing r14
 # selection done, we no longer need r14 or r15
 r15 = suit.Error
 # r15 = !r15
 seqz r15 r15
-and r15 r15 r13
+and r15 r15 flushing
 suit.Error = r15
-or flushing flushing r13
 
 # clamp AC temperature setting to safe range
 var unsafe = 0
@@ -186,7 +186,7 @@ sgt r14 temperature 318
 select temperature r14 MAXIMUM_TEMPERATURE temperature
 or unsafe unsafe r14
 
-# NOTE THAT WE USE r15 AND r14 FROM THE PREVIOUS BLOCK HERE!!! DO NOT REORDER!
+# NOTE THAT WE USE r15 AND r14 FROM THE PREVIOUS TWO BLOCKS HERE!!! DO NOT REORDER!
 # I don't trust the AC strength enough to toggle it on and off over time
 # If external temperature is in good range, turn the AC off
 # Suit.On = temperature < MINIMUM_TEMPERATURE || temperature > MAXIMUM_TEMPERATURE
@@ -206,27 +206,22 @@ or unsafe unsafe r13
 
 # check for if we need to filter
 # This will start filtering once oxygen partial pressure is at the safety threshold
-# This will stop filtering once the helmet is MAXIMUM_OXYGEN_RATIO% oxygen
+# This will stop filtering once the CO2 partial pressure drops below the target value
 # It also stops filtering when the helmet is open.
-# calculate helmetOxygenPressure and store it as r15
-r15 = helmetPressure * helmetOxygenRatio
-# filtering = (helmetOxygenPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE) || (filtering && helmetOxygenRatio < MAXIMUM_OXYGEN_RATIO) && helmetClosed
-slt r15 r15 MINIMUM_OXYGEN_PARTIAL_PRESSURE
-slt r14 helmetOxygenRatio MAXIMUM_OXYGEN_RATIO
+# filtering = (oxygenPartialPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE) || (filtering && carbonDioxidePartialPressure > TARGET_CO2_PARTIAL_PRESSURE) && helmetClosed
+slt r15 oxygenPartialPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
+sgt r14 carbonDioxidePartialPressure TARGET_CO2_PARTIAL_PRESSURE
 and r14 filtering r14
-or filtering r15 r14
-and filtering filtering helmetClosed
-
-# Fuck with pressure while filtering to avoid dumping O2 to waste
-select r15 filtering externalPressure DEFAULT_PRESSURE_SETTING
-suit.PressureSetting = r15
+or r15 r15 r14
+and filtering r15 helmetClosed
 
 # Drive the filter state
 suit.Filtration = filtering
 
 # handle unsafe external environment
-# if unsafe && helmetOpen
-and r15 unsafe helmetOpen
+# if (unsafe || flushing) && helmetOpen
+or r15 unsafe flushing
+and r15 r15 helmetOpen
 beqz r15 skip_helmet_close
     # unlock the helmet
     helmet.Lock = 0
@@ -240,5 +235,14 @@ skip_helmet_close:
 
 # finally, set the helmet to the desired lock state
 helmet.Lock = unsafe
+
+# Fuck with pressure while filtering to avoid dumping O2 to waste
+select r15 filtering externalPressure DEFAULT_PRESSURE_SETTING
+
+# Handle autoflush
+select r15 flushing 0 r15
+
+# r15 is now our desired pressure setting
+suit.PressureSetting = r15
 
 yield
