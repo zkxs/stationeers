@@ -1,0 +1,45 @@
+# Original source: https://stationeering.com/tools/ic/_2AB4Y9MFmKD
+# Modified by runtme
+
+# mips debugging block
+#use aliases
+#use constants
+#use comments
+
+# Daylight sensor is the only device you have to dial in
+alias sensor d0
+
+# compass directions of sensor and panel power ports YOU MUST FILL THIS IN!
+const sensor_data_angle = 0
+const panel_power_angle = 90
+
+# define panel hashes
+# Solar Panel
+const basic_1_panel = -2045627372
+# Solar Panel (Dual)
+const basic_2_panel = -539224550
+# Solar Panel (Heavy)
+const heavy_1_panel = -934345724
+# Solar Panel (Heavy Dual)
+const heavy_2_panel = -1545574413
+
+# calculate horizontal correction
+var correction_angle = sensor_data_angle - panel_power_angle - 90
+
+start:
+    var angle_vertical = sensor.Vertical
+    angle_vertical = 90 - angle_vertical
+    var angle_horizontal = sensor.Horizontal
+    angle_horizontal = angle_horizontal + correction_angle
+
+    d(basic_1_panel).Vertical = angle_vertical
+    d(basic_2_panel).Vertical = angle_vertical
+    d(heavy_1_panel).Vertical = angle_vertical
+    d(heavy_2_panel).Vertical = angle_vertical
+    d(basic_1_panel).Horizontal = angle_horizontal
+    d(basic_2_panel).Horizontal = angle_horizontal
+    d(heavy_1_panel).Horizontal = angle_horizontal
+    d(heavy_2_panel).Horizontal = angle_horizontal
+
+    yield
+j start
