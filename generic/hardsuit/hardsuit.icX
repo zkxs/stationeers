@@ -177,11 +177,11 @@ var externalPressure = suit.PressureExternal
 
 # handle temperature in vacuum-like conditions
 # 4 instructions for an if/else. compare,load,select is 3.
-# if externalPressure >= LOW_PRESSURE
+# if externalPressure < LOW_PRESSURE
 #     temperature = 0
 # else
 #     temperature = suit.TemperatureExternal
-sge r15 externalPressure LOW_PRESSURE
+slt r15 externalPressure LOW_PRESSURE
 r14 = suit.TemperatureExternal
 select temperature r15 0 r14
 
