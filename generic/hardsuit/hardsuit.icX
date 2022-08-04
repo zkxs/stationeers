@@ -1,19 +1,29 @@
-# runtime's Hardsuit controller v1.0.0
+########################################
+# runtime's Hardsuit controller v1.0.0 #
+########################################
 
 ############
 # FEATURES #
 ############
-# 1. If your suit needs flushing, it will beep at you while autoflushing.
-#    An autoflush is slower, but more precise, than a manual flush.
+# 1. If your suit needs flushing, it will beep at 
+#    you while autoflushing.  An autoflush is
+#    slower, but more precise, than a manual flush.
 #    Feel free to manually flush too!
-# 2. If the environment is appears unsafe, it closes and locks your helmet.
-#    Not all types of unsafe environment can be detected. Keeping your helmet closed is on you!
-# 3. It will micromanage your filter, greatly prolonging its lifespan.
-#    Filtering will temporarily fuck with release and pressure settings to avoid dumping O2
-#    to waste due to a stationeers bug.
-# 4. It will turn the AC off if the external temperature is safe.
-#    Otherwise, it will set your AC to the most extreme but still safe value.
-# 5. It will turn off air flow when your helmet is open.
+# 2. If the environment is appears unsafe, it closes
+#    and locks your helmet. Not all types of unsafe
+#    environment can be detected. Keeping your
+#    helmet closed is on you!
+# 3. It will micromanage your filter, greatly
+#    prolonging its lifespan. Filtering will
+#    temporarily fuck with release and pressure
+#    settings to avoid dumping O2 to waste due to a
+#    stationeers bug.
+# 4. It will turn the AC off if the external
+#    temperature is safe.  Otherwise, it will set
+#    your AC to the most extreme but still safe
+#    value.
+# 5. It will turn off air flow when your helmet is
+#    open.
 
 ###############
 # ASSUMPTIONS #
@@ -21,22 +31,30 @@
 #  1. Your tank is 100% oxygen
 #  2. You inhale oxygen
 #  3. You exhale CO2
-#  4. Your suit is loaded exclusively with CO2 filters
-#  5. CO2 is not toxic in any concentration (the devs may change this soon)
-#  6. O2 is not tooxic in any concentration (the devs may change this soon)
-#  7. You pressurize your breathable rooms between 1 and 2 atmospheres
-#  8. A 1 atmosphere breathable room contains at least 22% oxygen
-#  9. You don't want to use a normal helmet with your hardsuit.
-# 10. You would prefer a brief stint in vacuum to being poisoned
-# 11. You won't open your helmet in a bad atmosphere, even if it's unlocked.
+#  4. Your suit is loaded exclusively with CO2
+#     filters
+#  5. CO2 is not toxic in any concentration (the
+#     devs may change this soon)
+#  6. O2 is not tooxic in any concentration (the
+#     devs may change this soon)
+#  7. You pressurize your breathable rooms between 1
+#     and 2 atmospheres
+#  8. A 1 atmosphere breathable room contains at
+#     least 22% oxygen
+#  9. You won't use a normal helmet with your
+#     hardsuit
+# 10. You would prefer a brief stint in vacuum to
+#     being poisoned
+# 11. You won't open your helmet in a bad
+#     atmosphere, even if it's unlocked
 
 #############
 # icX notes #
 #############
 # icX usually generates stupid code for ifs:
 # Sometimes it just wastes instructions, but sometimes it borks the output completely
-# and generates invalid ic10. For this reason most of my branching has been done in
-# straight ic10 vs using if.
+# and generates invalid ic10. For this reason all of my branching has been done in
+# straight ic10 vs using icX if statements.
 #
 # icX uses lower registers for variables and higher registers for temporary results.
 # We can actually sneak our own usage out of the high registers without breaking icX.
@@ -47,10 +65,11 @@
 ##############
 # WEIRD SHIT #
 ##############
-# When the hardsuit helmet is open, its gas ratio sensor just fucking stops working.
+# When the hardsuit helmet is open, its gas ratio sensor doesn't work as expectd.
+# It appears that the helmet only mixes with the environment as it is closed.
 # This makes it impossible to auto-close the helmet if the room is contaminated.
 #
-# While we're at it, why the fuck can't the hardsuit read the external gas mix?
+# While we're at it, why the fuck can't the hardsuit just read the external gas mix directly?
 #
 # Also, the funny "vent before cool" bug that causes you to yeet O2 into waste on hot planets
 # is not, in fact, funny and should be fixed by the devs. But I can work around it.
@@ -58,6 +77,23 @@
 # The ONLY way your suit can (automatically) vent excess pressure is if the filters are on.
 # The manual "flush helmet" button is special and its behavior cannot be replicated via logic.
 # The manual flush is much faster and also bypasses the filters.
+#
+# While the suit has its own sensors, they suck. This is because the helmet and suit have separate
+# atmospheres that mix over time. The helmet atmosphere is the actual important one that you breathe
+# from, but the filtering is done in the suit. This means as you're filtering the helmet always lags
+# behind the suit. What this means is you need to read the helmet gas ratios to actually know when
+# you can stop filtering.
+#
+# You can set the temperatore/pressure settings to out of range values. They will display the set value
+# even though functionally they are still clamped. This is useful, as you can abuse the settings as
+# debug displays.
+
+##################
+# Register Notes #
+##################
+# r0 - r9 are reserved for specific variables
+# r13 - r15 are temporary registers
+# This leaves r10 - r12, ra, and sp free
 
 ############
 # THE CODE #
@@ -117,6 +153,9 @@ alias suit   db
 alias helmet d0
 alias pack   d1
 
+# This is where the main loop begins
+start_of_loop:
+
 # handle if the helmet is missing
 bdse helmet helmet_connected
 suit.Filtration = 0
@@ -125,14 +164,18 @@ suit.On = 0
 j end_of_loop
 helmet_connected:
 
-# are we currently flushing?
+# Are we currently flushing?
+# This is true if the internal atmosphere is contaminated.
 var flushing
 
-# are we currently filtering?
-var filtering = suit.Filtration
-
-# is the external environment unsafe?
+# Should the helmet be locked closed?
+# This is true if the external atmosphere appears unsafe.
 var unsafe
+
+# Are we currently filtering?
+# We pull this state from the device instead of storing
+# it internally to allow the user to trigger a filter.
+var filtering = suit.Filtration
 
 # Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
 var helmetOpen = helmet.Open
@@ -283,16 +326,18 @@ helmet.Lock = unsafe
 # This is actually a bug, but the devs like it so they're leaving it in?
 select r15 filtering MAXIMUM_ENVIRONMENT_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
 
-# override the pressure back to default if oxygenPartialPressureLow = 1
+# override the pressure back to default if oxygenPartialPressureLow == 1
+# (this is where we finally use r13 from up in the filtering calculation, but we still aren't done with it)
 select r15 r13 DEFAULT_PRESSURE_SETTING r15
 
-# Handle autoflush
+# Handle autoflush by setting the target pressure to zero
 select r15 flushing MINIMUM_ENVIRONMENT_PRESSURE_SETTING r15
 # r15 is now our desired pressure setting
 suit.PressureSetting = r15
 
 # suit.AirRelease = (!filtering || oxygenPartialPressureLow) && helmetClosed
-# it doesn't matter if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
+# We don't care if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
+# (again we use r13 from up in the filtering calculation)
 seqz r15 filtering
 or r15 r15 r13
 and r15 r15 helmetClosed
@@ -300,4 +345,4 @@ suit.AirRelease = r15
 
 end_of_loop:
 yield
-j 0
+j start_of_loop

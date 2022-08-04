@@ -1,1 +1,2 @@
 *.ic10
+!*.release.ic10
