@@ -1,4 +1,4 @@
-# runtime's Hardsuit controller v2.0.0
+# runtime's Hardsuit controller v1.0.0
 
 ############
 # FEATURES #
@@ -43,6 +43,21 @@
 #
 # icX sometimes breaks subtly if you use comments after a line. For this reason
 # I only do full-line comments.
+
+##############
+# WEIRD SHIT #
+##############
+# When the hardsuit helmet is open, its gas ratio sensor just fucking stops working.
+# This makes it impossible to auto-close the helmet if the room is contaminated.
+#
+# While we're at it, why the fuck can't the hardsuit read the external gas mix?
+#
+# Also, the funny "vent before cool" bug that causes you to yeet O2 into waste on hot planets
+# is not, in fact, funny and should be fixed by the devs. But I can work around it.
+#
+# The ONLY way your suit can (automatically) vent excess pressure is if the filters are on.
+# The manual "flush helmet" button is special and its behavior cannot be replicated via logic.
+# The manual flush is much faster and also bypasses the filters.
 
 ############
 # THE CODE #
@@ -118,7 +133,6 @@ var filtering = suit.Filtration
 
 # is the external environment unsafe?
 var unsafe
-
 
 # Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
 var helmetOpen = helmet.Open
