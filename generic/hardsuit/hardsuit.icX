@@ -242,10 +242,9 @@ and r14 r14 filtering
 or r15 r13 r14
 and filtering r15 helmetClosed
 
-# suit.Filtration = !flushing && filtering
-seqz r15 flushing
-# also don't filter while flushing. Flushing takes priority.
-and r15 r15 filtering
+# We must filter in order for the flush to work
+# suit.Filtration = flushing || filtering
+or r15 flushing filtering
 suit.Filtration = r15
 
 # handle unsafe external environment
