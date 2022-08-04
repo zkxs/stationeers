@@ -26,7 +26,7 @@
 #  6. O2 is not tooxic in any concentration (the devs may change this soon)
 #  7. You pressurize your breathable rooms between 1 and 2 atmospheres
 #  8. A 1 atmosphere breathable room contains at least 22% oxygen
-#  9. If you are not wearing a hardsuit helmet, you must be wearing a closed normal helmet.
+#  9. You don't want to use a normal helmet with your hardsuit.
 # 10. You would prefer a brief stint in vacuum to being poisoned
 # 11. You won't open your helmet in a bad atmosphere, even if it's unlocked.
 
@@ -48,9 +48,6 @@
 # THE CODE #
 ############
 
-# This is needed
-use loop
-
 # This is useful for debugging ic10 generation
 #use aliases
 #use comments
@@ -71,7 +68,7 @@ const LOW_PRESSURE = 1
 # if we drop below this partial pressure, we need to start filtering
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
 # if we have less than this partial pressure of CO2, we're good to stop filtering
-const TARGET_CO2_PARTIAL_PRESSURE = 1
+const TARGET_CO2_PARTIAL_PRESSURE = 3
 # Expected minimum oxygen ratio you'll encounter
 const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
 # 20 kPa for 100% O2, but anything less than MINIMUM_ENVIRONMENT_PRESSURE is bad for airmix
@@ -105,29 +102,36 @@ alias suit   db
 alias helmet d0
 alias pack   d1
 
+# handle if the helmet is missing
+bdse helmet helmet_connected
+suit.Filtration = 0
+suit.AirRelease = 0
+suit.On = 0
+j end_of_loop
+helmet_connected:
+
 # are we currently flushing?
 var flushing
 
 # are we currently filtering?
-var filtering
+var filtering = suit.Filtration
 
 # is the external environment unsafe?
 var unsafe
 
 
 # Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
-brdns helmet 2
-    var helmetOpen = helmet.Open
+var helmetOpen = helmet.Open
 var helmetClosed
 seqz helmetClosed helmetOpen
 
 # get helmet pressure
-var internalPressure = suit.Pressure
+var internalPressure = helmet.Pressure
 
 # get partial pressures of the expected gasses
-var oxygenPartialPressure = suit.RatioOxygen
+var oxygenPartialPressure = helmet.RatioOxygen
 oxygenPartialPressure = oxygenPartialPressure * internalPressure
-var carbonDioxidePartialPressure = suit.RatioCarbonDioxide
+var carbonDioxidePartialPressure = helmet.RatioCarbonDioxide
 carbonDioxidePartialPressure = carbonDioxidePartialPressure * internalPressure
 
 # This next bit is stupid.
@@ -144,14 +148,14 @@ r15 = internalPressure - r15
 # check each of the toxin partial pressures.
 # basically 3 of these:
 # toxinDetected |= ratio * pressure >= threshold
-r13 = suit.RatioNitrousOxide
+r13 = helmet.RatioNitrousOxide
 r13 = r13 * internalPressure
 sge r14 r13 MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE
-r13 = suit.RatioPollutant
+r13 = helmet.RatioPollutant
 r13 = r13 * internalPressure
 sge r13 r13 MAXIMUM_POLLUTANT_PARTIAL_PRESSURE
 or r14 r14 r13
-r13 = suit.RatioVolatiles
+r13 = helmet.RatioVolatiles
 r13 = r13 * internalPressure
 sge r13 r13 MAXIMUM_VOLATILES_PARTIAL_PRESSURE
 or r14 r14 r13
@@ -224,14 +228,21 @@ or unsafe unsafe r13
 # This will start filtering once oxygen partial pressure is at the safety threshold
 # This will stop filtering once the CO2 partial pressure drops below the target value
 # It also stops filtering when the helmet is open.
-# filtering = (oxygenPartialPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE) || (filtering && carbonDioxidePartialPressure > TARGET_CO2_PARTIAL_PRESSURE) && helmetClosed
-slt r15 oxygenPartialPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
+# filtering = (
+#   (oxygenPartialPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE)
+#   || (
+#       (carbonDioxidePartialPressure > TARGET_CO2_PARTIAL_PRESSURE)
+#       && filtering
+#   )
+#) && helmetClosed
+slt r13 oxygenPartialPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
+# r13 is now oxygenPartialPressureLow. We will save this for later.
 sgt r14 carbonDioxidePartialPressure TARGET_CO2_PARTIAL_PRESSURE
-and r14 filtering r14
-or r15 r15 r14
+and r14 r14 filtering
+or r15 r13 r14
 and filtering r15 helmetClosed
 
-# Drive the filter state
+# suit.Filtration = !flushing && filtering
 seqz r15 flushing
 # also don't filter while flushing. Flushing takes priority.
 and r15 r15 filtering
@@ -253,21 +264,27 @@ beqz r15 helmet_closed
 helmet_closed:
 
 # finally, set the helmet to the desired lock state
-brdns helmet 2
-    helmet.Lock = unsafe
+helmet.Lock = unsafe
 
 # Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
 # This is actually a bug, but the devs like it so they're leaving it in?
 select r15 filtering MAXIMUM_ENVIRONMENT_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
+
+# override the pressure back to default if oxygenPartialPressureLow = 1
+select r15 r13 DEFAULT_PRESSURE_SETTING r15
+
 # Handle autoflush
 select r15 flushing MINIMUM_ENVIRONMENT_PRESSURE_SETTING r15
 # r15 is now our desired pressure setting
 suit.PressureSetting = r15
 
-# suit.AirRelease = helmetClosed || !filtering
+# suit.AirRelease = (!filtering || oxygenPartialPressureLow) && helmetClosed
 # it doesn't matter if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
 seqz r15 filtering
-or r15 helmetClosed r15
+or r15 r15 r13
+and r15 r15 helmetClosed
 suit.AirRelease = r15
 
+end_of_loop:
 yield
+j 0
