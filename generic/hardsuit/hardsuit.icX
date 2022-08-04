@@ -111,6 +111,9 @@ var flushing
 # are we currently filtering?
 var filtering
 
+# is the external environment unsafe?
+var unsafe
+
 
 # Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
 brdns helmet 2
@@ -169,8 +172,6 @@ seqz r15 r15
 and r15 r15 flushing
 suit.Error = r15
 
-# clamp AC temperature setting to safe range
-var unsafe = 0
 var temperature
 var externalPressure = suit.PressureExternal
 
@@ -188,15 +189,15 @@ select temperature r15 0 r14
 # if temperature < MINIMUM_TEMPERATURE
 #     temperature = MINIMUM_TEMPERATURE
 #     unsafe = 1
-slt r15 temperature 274
+slt r15 temperature MINIMUM_TEMPERATURE
 select temperature r15 MINIMUM_TEMPERATURE temperature
-or unsafe unsafe r15
+move unsafe r15
 
 # clamp temperature to MAXIMUM_TEMPERATURE
 # if temperature > MAXIMUM_TEMPERATURE
 #     temperature = MAXIMUM_TEMPERATURE
 #     unsafe = 1
-sgt r14 temperature 318
+sgt r14 temperature MAXIMUM_TEMPERATURE
 select temperature r14 MAXIMUM_TEMPERATURE temperature
 or unsafe unsafe r14
 
@@ -204,12 +205,13 @@ or unsafe unsafe r14
 # I don't trust the AC strength enough to toggle it on and off over time
 # If external temperature is in good range, turn the AC off
 # Suit.On = temperature < MINIMUM_TEMPERATURE || temperature > MAXIMUM_TEMPERATURE
-or r15 r14 r15
-suit.On = r15
+or r13 r14 r15
+suit.On = r13
 
 # Set the target temperature to our clamped external temperature
 suit.TemperatureSetting = temperature
 
+# NOTE THAT WE STILL USE r15 AND r14 FROM THE PREVIOUS BLOCKS HERE!!! DO NOT REORDER!
 # check if pressure is outside of safe range.
 # if externalPressure < MINIMUM_ENVIRONMENT_PRESSURE || externalPressure > MAXIMUM_ENVIRONMENT_PRESSURE
 #     unsafe = 1
