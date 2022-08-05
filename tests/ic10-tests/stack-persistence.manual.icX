@@ -1,0 +1,12 @@
+alias display1 d0
+alias display2 d1
+alias display3 d2
+
+s display3 Setting sp
+move sp 512
+start:
+s display1 Setting sp
+pop r0
+s display2 Setting r0
+yield
+j start

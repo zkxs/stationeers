@@ -1,0 +1,103 @@
+# 
+use loop
+alias display d0
+display.Setting = 0
+yield
+display.Setting = 1
+yield
+display.Setting = 2
+yield
+display.Setting = 3
+yield
+display.Setting = 4
+yield
+display.Setting = 5
+yield
+display.Setting = 6
+yield
+display.Setting = 7
+yield
+display.Setting = 8
+yield
+display.Setting = 9
+yield
+display.Setting = 10
+yield
+display.Setting = 11
+yield
+display.Setting = 12
+yield
+display.Setting = 13
+yield
+display.Setting = 14
+yield
+display.Setting = 15
+yield
+display.Setting = 16
+yield
+display.Setting = 17
+yield
+display.Setting = 18
+yield
+display.Setting = 19
+yield
+display.Setting = 20
+yield
+display.Setting = 21
+yield
+display.Setting = 22
+yield
+display.Setting = 23
+yield
+display.Setting = 24
+yield
+display.Setting = 25
+yield
+display.Setting = 26
+yield
+display.Setting = 27
+yield
+display.Setting = 28
+yield
+display.Setting = 29
+yield
+display.Setting = 30
+yield
+display.Setting = 31
+yield
+display.Setting = 32
+yield
+display.Setting = 33
+yield
+display.Setting = 34
+yield
+display.Setting = 35
+yield
+display.Setting = 36
+yield
+display.Setting = 37
+yield
+display.Setting = 38
+yield
+display.Setting = 39
+yield
+display.Setting = 40
+yield
+display.Setting = 41
+yield
+display.Setting = 42
+yield
+display.Setting = 43
+yield
+display.Setting = 44
+yield
+display.Setting = 45
+yield
+display.Setting = 46
+yield
+display.Setting = 47
+yield
+display.Setting = 48
+yield
+display.Setting = 49
+yield

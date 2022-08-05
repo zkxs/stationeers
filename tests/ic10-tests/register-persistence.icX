@@ -1,0 +1,7 @@
+# used to prove that registers persist
+use loop
+alias display d0
+var accumulator
+display.Setting = accumulator
+accumulator = accumulator + 1
+yield
