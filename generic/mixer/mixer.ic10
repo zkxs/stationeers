@@ -4,12 +4,14 @@
 define moles1 1         # Desired moles from input 1
 define moles2 2         # Desired moles from input 2
 define pressure 100     # Desired output pressure
-alias mixer  d0         # The gas mixer to control
-alias gas1   d3         # Analyzer on input 1
-alias gas2   d4         # Analyzer on input 2
-alias gasOut d5         # Analyzer on output
-alias t1n1   r0         # Temp1 * moles1
-alias acc    r1         # Accumulator
+alias mixer   d0        # The gas mixer to control
+alias unused1 d1
+alias unused2 d2
+alias gas1    d3        # Analyzer on input 1
+alias gas2    d4        # Analyzer on input 2
+alias gasOut  d5        # Analyzer on output
+alias t1n1    r0        # Temp1 * moles1
+alias acc     r1        # Accumulator
 
 start:
 l acc gas1 Temperature
