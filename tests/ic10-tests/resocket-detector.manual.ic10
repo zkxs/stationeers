@@ -1,0 +1,15 @@
+alias display d0
+alias state r0
+
+seqz state state # invert state
+beqz state thing2
+
+thing1:
+s display Setting 1
+yield
+j thing1
+
+thing2:
+s display Setting 2
+yield
+j thing2
