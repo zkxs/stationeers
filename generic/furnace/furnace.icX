@@ -1,0 +1,108 @@
+# Advanced Furnace Controller
+
+# WIP and very incomplete!
+
+#############
+# Procedure #
+#############
+# 1. Dial in target pressure and temperature
+# 2. Press go lever
+# 3. Add your ores whenever
+# 4. Initial conditions of the furnace do not matter
+
+################
+# Simple Logic #
+################
+# - if pressure is dangerous, vent
+# - else if temperature is too low, burn fuel
+# - else if pressure is too high, vent
+# - else if pressure is too low, add dilutant
+#
+# This will be optimal for most alloys
+# For certain alloys that require high pressures and low temperatures,
+# this will waste fuel. This is because it does the dilutant LAST.
+
+##################
+# Advanced Logic #
+##################
+# - calculate current conditions of furnace
+# - calculate fuel purity
+# - calculate quantity of fuel and dilutant needed
+
+use comments
+
+###########
+# Devices #
+###########
+alias PressureDial d0
+alias TemperatureDial d1
+alias GoButton d2
+alias Furnace d3
+
+#####################
+# PrefabHash values #
+#####################
+const ADVANCED_FURNACE = 545937711
+
+#############
+# Constants #
+#############
+# for kPa pressures
+const IDEAL_GAS_CONSTANT = 8.3144
+
+# molar heat capacity of the gasses
+const HEAT_CAPACITY_CARBON_DIOXIDE = 28.2
+const HEAT_CAPACITY_POLLUTANT      = 24.8
+const HEAT_CAPACITY_NITROUS_OXIDE  = 23.0
+const HEAT_CAPACITY_OXYGEN         = 21.1
+const HEAT_CAPACITY_NITROGEN       = 20.6
+const HEAT_CAPACITY_VOLATILES      = 20.4
+
+############
+# Settings #
+############
+# Volume of the mixing pipe
+const MIX_VOLUME = 60
+# Volume of a furnace
+const FURNACE_VOLUME = 10000
+# Maximum pressure before things explode
+const MAX_PRESSURE = 60000
+
+# calculate the heat capacity of an atmosphere
+# inputs: r15 atmosphere device index
+#         r14 atmosphere volume
+# output: r12 result
+# uses registers: r15, r14, r13, r12
+function example
+    r13 = dr15.Pressure
+    r13 = r13 * r14
+    # r13 is now P*V
+    r14 = dr15.Temperature
+    r14 = r14 * IDEAL_GAS_CONSTANT
+    # r14 is now RT
+    r13 = r13 / r14
+    # r13 is now n == (PV)/(RT)
+    r14 = dr15.RatioCarbonDioxide
+    r14 = r14 * r13
+    r12 = r14 * HEAT_CAPACITY_CARBON_DIOXIDE
+    r14 = dr15.RatioPollutant
+    r14 = r14 * r13
+    r14 = r14 * HEAT_CAPACITY_POLLUTANT
+    r12 = r12 + r14
+    r14 = dr15.RatioNitrousOxide
+    r14 = r14 * r13
+    r14 = r14 * HEAT_CAPACITY_NITROUS_OXIDE
+    r12 = r12 + r14
+    r14 = dr15.RatioOxygen
+    r14 = r14 * r13
+    r14 = r14 * HEAT_CAPACITY_OXYGEN
+    r12 = r12 + r14
+    r14 = dr15.RatioNitrogen
+    r14 = r14 * r13
+    r14 = r14 * HEAT_CAPACITY_NITROGEN
+    r12 = r12 + r14
+    r14 = dr15.RatioVolatiles
+    r14 = r14 * r13
+    r14 = r14 * HEAT_CAPACITY_VOLATILES
+    r12 = r12 + r14
+end
