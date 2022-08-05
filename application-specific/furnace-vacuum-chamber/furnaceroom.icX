@@ -1,0 +1,67 @@
+#use aliases
+#use comments
+#use constants
+
+# Device aliases
+alias Furnace d0
+
+# PrefabHash values
+const ACTIVE_VENT = 0
+const GAS_SENSOR = 0
+
+# Active vent constants
+const MODE_INWARD = 1
+
+# How many seconds to pull vacuum for after we saw gas
+const MAX_VACUUM_SECONDS = 10
+# A tick is approximately half a second.
+const MAX_VACUUM_TICKS = MAX_VACUUM_SECONDS * 2
+# Maximum furnace pressure in kPa
+const MAX_FURNACE_PRESSURE = 59000
+
+# Ticks to continue pulling vacuum for
+var ticksToVacuum
+
+# Set up the vents
+d(ACTIVE_VENT).Lock = 1
+d(ACTIVE_VENT).On = 0
+d(ACTIVE_VENT).Mode = MODE_INWARD
+d(ACTIVE_VENT).PressureExternal = 0
+d(ACTIVE_VENT).PressureInternal = 30000
+
+# Main loop
+start_loop:
+
+# Vacuum chamber controller
+# maxPressure = gas sensor max pressure
+r15 = d(GAS_SENSOR).Pressure(Maximum)
+# if maxPressure > 0
+#   ticksToVacuum = MAX_VACUUM_TICKS
+# else
+#   ticksToVacuum = ticksToVacuum
+sgtz r15 r15
+select ticksToVacuum r15 MAX_VACUUM_TICKS ticksToVacuum
+# if ticksToVacuum > 0
+#   Vent.On = 1
+#   ticksToVacuum -= 1
+# else
+#   Vent.On = 0
+#   ticksToVacuum = 0
+sgtz r15 ticksToVacuum
+d(ACTIVE_VENT).On = r15
+ticksToVacuum = ticksToVacuum - 1
+select ticksToVacuum r15 ticksToVacuum 0
+
+
+# Furnace emergency vent
+# if Furnace.Pressure > MAX_FURNACE_PRESSURE
+#   Furnace.SettingOutput = 100
+#   Furnace.On = 1
+r15 = Furnace.Pressure
+ble r15 MAX_FURNACE_PRESSURE end_loop
+  Furnace.SettingOutput = 100
+  Furnace.On = 1
+
+end_loop:
+yield
+j start_loop
