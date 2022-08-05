@@ -17,8 +17,6 @@ move r13 0
 move r14 0
 move r15 0
 move ra 0
-push 0
-move sp 512
 start:
-pop r0
+push 0
 j start
