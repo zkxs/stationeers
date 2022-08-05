@@ -3,11 +3,14 @@
 #use constants
 
 # Device aliases
+
+# Optionally, put a furnace on d0 to have it emergency vent
 alias Furnace d0
 
 # PrefabHash values
-const ACTIVE_VENT = 0
-const GAS_SENSOR = 0
+const ACTIVE_VENT = -1129453144
+const GAS_SENSOR = -1252983604
+const ADVANCED_FURNACE = 545937711
 
 # Active vent constants
 const MODE_INWARD = 1
@@ -57,6 +60,9 @@ select ticksToVacuum r15 ticksToVacuum 0
 # if Furnace.Pressure > MAX_FURNACE_PRESSURE
 #   Furnace.SettingOutput = 100
 #   Furnace.On = 1
+bdns Furnace end_loop
+r15 = Furnace.PrefabHash
+bne r15 ADVANCED_FURNACE end_loop
 r15 = Furnace.Pressure
 ble r15 MAX_FURNACE_PRESSURE end_loop
   Furnace.SettingOutput = 100
