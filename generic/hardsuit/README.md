@@ -2,7 +2,7 @@
 
 Slap this into any old hardsuit and it'll manage things for you. I think the feature list really sells it.
 
-The minified ic10 code: [hardsuit.ic10](hardsuit.ic10). Copy/paste this into the game.
+The minified ic10 code: [hardsuit.ic10](hardsuit.release.ic10). Copy/paste this into the game.
 
 The source code before minification: [hardsuit.icX](hardsuit.icX). Look at this if you actually want to read the code.
 
