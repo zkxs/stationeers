@@ -12,22 +12,6 @@
 # icX sometimes breaks subtly if you use comments after a line. For this reason
 # I only do full-line comments.
 
-##############
-# WEIRD SHIT #
-##############
-# While the suit has its own sensors, they suck. This is because the helmet and suit have separate
-# atmospheres that mix over time. The helmet atmosphere is the actual important one that you breathe
-# from, but the filtering is done in the suit. This means as you're filtering the helmet always lags
-# behind the suit. What this means is you need to read the helmet gas ratios to actually know when
-# you can stop filtering.
-#
-# You can set the temperatore/pressure settings to out of range values. They will display the set value
-# even though functionally they are still clamped. This is useful, as you can abuse the settings as
-# debug displays.
-#
-# Normal helmets actually have all the same logic values as a hardsuit helmet, and can be controlled
-# perfectly fine via d0.
-
 ##################
 # Register Notes #
 ##################
@@ -48,24 +32,30 @@
 
 # Used for celsius/kelvin conversion.
 const ZERO_CELSIUS = 273.15
-# -10C for real, but suit lady yells. So we'll do 1.
-const MINIMUM_TEMPERATURE = ZERO_CELSIUS + 1
-# +50C for real. Not sure if suit lady yells. We'll do 39.
-const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 39
-# anything beneath this we treat as zero
+# one atmosphere in kPa
+const ONE_ATMOSPHERE = 101.325
+# Degrees to run under the suit lady warning threshold
+const SUIT_LADY_WIGGLE_ROOM = 0.5
+# -10C for real, but suit lady yells
+const MINIMUM_TEMPERATURE = ZERO_CELSIUS + SUIT_LADY_WIGGLE_ROOM
+# +80C for real, but suit lady yells
+const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 40 - SUIT_LADY_WIGGLE_ROOM
+# anything beneath this pressure we treat as vacuum
 const LOW_PRESSURE = 1
+# pressure below which humans take damage
+const MINIMUM_SAFE_PRESSURE = 20
 # if we drop below this partial pressure, we need to start filtering
-const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 20
+const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 16
 # if we have less than this partial pressure of CO2, we're good to stop filtering
 const TARGET_CO2_PARTIAL_PRESSURE = 3
 # Expected minimum oxygen ratio you'll encounter
 const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
 # 20 kPa for 100% O2, but anything less than MINIMUM_ENVIRONMENT_PRESSURE is bad for airmix
 const MINIMUM_ENVIRONMENT_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
-# 600 kPa, but anything more than 200 kPa is suss
-const MAXIMUM_ENVIRONMENT_PRESSURE = 202.65
+# 607.95 kPa, but anything more than 2 atm is suss
+const MAXIMUM_ENVIRONMENT_PRESSURE = ONE_ATMOSPHERE * 2
 # normal release pressure in kPa
-const DEFAULT_PRESSURE_SETTING = 101.325
+const DEFAULT_PRESSURE_SETTING = ONE_ATMOSPHERE * 1
 # minimum release pressure in kPa
 const MINIMUM_RELEASE_PRESSURE_SETTING = 0
 # maximum release pressure in kPa
@@ -73,15 +63,10 @@ const MAXIMUM_RELEASE_PRESSURE_SETTING = 202.65
 # how much non-O2 non-C02 gas do we allow?
 const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
 const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
-# maximum volatiles ratio in 1 atm helmet before we scream
-const MAXIMUM_VOLATILES_RATIO = 0.005
-const MAXIMUM_VOLATILES_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_VOLATILES_RATIO
-# maximum volatiles ratio in 1 atm helmet before we scream
-const MAXIMUM_POLLUTANT_RATIO = 0.0001
-const MAXIMUM_POLLUTANT_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_POLLUTANT_RATIO
-# maximum nitrous oxide ratio in 1 atm helmet before we scream
-const MAXIMUM_NITROUS_OXIDE_RATIO = 0.0001
-const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_NITROUS_OXIDE_RATIO
+# maximum toxin partial pressure in kPa before things are bad for humans
+const MAXIMUM_TOXIN_PARTIAL_PRESSURE = 0.5
+# maximum nitrous oxide partial pressure before we start getting stunned
+const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = 5
 
 ##################
 # Device aliases #
@@ -145,18 +130,16 @@ r15 = internalPressure - r15
 # r15 is now mysteryGasPressure
 
 # check each of the toxin partial pressures.
-# basically 3 of these:
-# toxinDetected |= ratio * pressure >= threshold
+# toxinDetected = (pollutantRatio + volatilesRatio) * pressure >= threshold
+r13 = helmet.RatioPollutant
+r14 = helmet.RatioVolatiles
+r13 = r13 + r14
+r13 = r13 * internalPressure
+sge r14 r13 MAXIMUM_TOXIN_PARTIAL_PRESSURE
+# toxinDetected |= nitrousRatio * pressure >= threshold
 r13 = helmet.RatioNitrousOxide
 r13 = r13 * internalPressure
-sge r14 r13 MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE
-r13 = helmet.RatioPollutant
-r13 = r13 * internalPressure
-sge r13 r13 MAXIMUM_POLLUTANT_PARTIAL_PRESSURE
-or r14 r14 r13
-r13 = helmet.RatioVolatiles
-r13 = r13 * internalPressure
-sge r13 r13 MAXIMUM_VOLATILES_PARTIAL_PRESSURE
+sge r13 r13 MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE
 or r14 r14 r13
 # r14 is now toxinDetected, we no longer need r13
 
