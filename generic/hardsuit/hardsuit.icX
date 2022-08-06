@@ -50,13 +50,14 @@ const MAXIMUM_RELEASE_PRESSURE_SETTING = 202.65
 const MINIMUM_SAFE_PRESSURE_FUDGE_FACTOR = 3
 # pressure below which humans take damage is 20
 const MINIMUM_SAFE_PRESSURE = 20 + MINIMUM_SAFE_PRESSURE_FUDGE_FACTOR
-# extra kPa of O2 to keep around so that we RIGHT on the edge of suffocation
-const MINIMUM_OXYGEN_FUDGE_FACTOR = 1
-# if we drop below 16 kPa, we start suffocating
-const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 16 + MINIMUM_OXYGEN_FUDGE_FACTOR
-# if we have more than this total internal pressure, we should start filtering
-const TARGET_TOTAL_PRESSURE = 24
-#MAXIMUM_RELEASE_PRESSURE_SETTING - 2
+# if we drop below 16 kPa, we start suffocating. Used for safety checks.
+const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 16
+# extra kPa of O2 to keep around so that we aren't EXACTLY on the edge of suffocation
+const MINIMUM_OXYGEN_FUDGE_FACTOR = 0.95
+# how much O2 partial pressure we want to keep in the helmet
+const TARGET_OXYGEN_PARTIAL_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE + MINIMUM_OXYGEN_FUDGE_FACTOR
+# if we have more than this total internal pressure, we should start filtering. We'll keep 10 kPa in reserve in case weird thermal expansion stuff happens.
+const TARGET_TOTAL_PRESSURE = MAXIMUM_RELEASE_PRESSURE_SETTING - 10
 # if we have less than this partial pressure of CO2, we're good to stop filtering
 const TARGET_CARBON_DIOXIDE_PARTIAL_PRESSURE = 5
 # Expected minimum oxygen ratio you'll encounter
@@ -65,10 +66,10 @@ const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
 const MINIMUM_ENVIRONMENT_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
 # 607.95 kPa, but anything more than 2 atm is suss
 const MAXIMUM_ENVIRONMENT_PRESSURE = ONE_ATMOSPHERE * 2
-# how much guaranteed kPa of room for CO2 do I want to have?
-const CARBON_DIOXIDE_WORKING_PRESSURE = 0
+# how much guaranteed kPa of room for CO2 do I want to have? If this is too low the filters could get stuck on.
+const CARBON_DIOXIDE_WORKING_PRESSURE = 20
 # how much non-O2 non-C02 gas do we allow?
-const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = TARGET_TOTAL_PRESSURE - MINIMUM_OXYGEN_PARTIAL_PRESSURE - CARBON_DIOXIDE_WORKING_PRESSURE
+const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = TARGET_TOTAL_PRESSURE - TARGET_OXYGEN_PARTIAL_PRESSURE - CARBON_DIOXIDE_WORKING_PRESSURE
 # maximum toxin partial pressure in kPa before things are bad for humans
 const MAXIMUM_TOXIN_PARTIAL_PRESSURE = 0.5
 # maximum nitrous oxide partial pressure before we start getting stunned
@@ -252,8 +253,8 @@ and r15 r15 helmetOpen
 helmet.Open = r15
 
 # if not filtering or flushing, the default pressure setting should be:
-#   suit.PressureSetting = max((MINIMUM_OXYGEN_PARTIAL_PRESSURE - oxygenPartialPressure) + internalPressure, MINIMUM_SAFE_PRESSURE)
-r15 = MINIMUM_OXYGEN_PARTIAL_PRESSURE - oxygenPartialPressure
+#   suit.PressureSetting = max((TARGET_OXYGEN_PARTIAL_PRESSURE - oxygenPartialPressure) + internalPressure, MINIMUM_SAFE_PRESSURE)
+r15 = TARGET_OXYGEN_PARTIAL_PRESSURE - oxygenPartialPressure
 r15 = r15 + internalPressure
 max r15 r15 MINIMUM_SAFE_PRESSURE
 # r15 = targetPressure, done with r14

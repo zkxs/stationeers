@@ -10,6 +10,7 @@
 
 ### Fixed
 - Toxin detection now matches how the game actually checks for toxins
+- Release toggle no longer lags behind filtering start by one tick
 
 ## 1.0.0
 

@@ -40,38 +40,27 @@ If any of these are false, the hardsuit controller program may behave in undesir
 
    The developers think this bug is interesting and makes hot planets more difficult, so they are leaving it in (for now).
 
-## Bugs
-
-### The "Three Clicks" bug
-
-For some reason my filtering stuff is happening across two ticks:
-
-1. Filter turns on
-2. Release turns off and target is set to 202 kPa
-3. time passes
-4. Filter turns off, release turns on, target set to 101 kPa
-
-Things that are **not** causing this:
-- `suit.Filtration = internalPressureHigh || flushing || filtering`
-
 ## Suit Trivia
 
 ### Helmet
+
 - The light uses 5 W per tick, or 10 W per second from the equipped suit's battery.
 - Flushing does not consume power, and works with no cell. This means if you're out of battery you can manually flush in order to not die. Just flush whenever you get oxygen low or too hot/cold.
 - Normal helmets actually have all the same logic values as a hardsuit helmet, and can be controlled perfectly fine via d0.
 
 ### IC Power Cost
+
 - The IC uses 2.5 W per tick, or 5 W per second.
 - Does it still use power if the suit is not equipped?
 
 ### Air Release
+
 - Air release does not consume power, and functions even when there is no cell installed.
 
 ### Filters
 
 - Filters use 10 W per tick, or 20 W per second.
-- This means for an IC to break even, it has to run your filters 75% of the time maximum.
+- This means for an IC to break even, it has to run your filters 75% of the time maximum. In practice a filter management IC will run ~2% of the time. Not only will your filters last 50 times longer, they use only ~4 W average. The ~16W filter power savings means the IC effectively *saves* 11W to install.
 - Filters will still run even if the suit is not occupied.
 
 ### Air Conditioner
