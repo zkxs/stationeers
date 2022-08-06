@@ -24,6 +24,9 @@
 # You can set the temperatore/pressure settings to out of range values. They will display the set value
 # even though functionally they are still clamped. This is useful, as you can abuse the settings as
 # debug displays.
+#
+# Normal helmets actually have all the same logic values as a hardsuit helmet, and can be controlled
+# perfectly fine via d0.
 
 ##################
 # Register Notes #

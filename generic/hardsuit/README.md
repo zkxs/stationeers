@@ -22,8 +22,7 @@ If any of these are false, the hardsuit controller program may behave in undesir
 6. O2 is not toxic in any concentration (the devs may change this soon)
 7. You pressurize your breathable rooms between 1 and 2 atmospheres
 8. A 1 atmosphere breathable room contains at least 22% oxygen
-9. You won't use a normal helmet with your hardsuit
-10. You would prefer a brief stint in vacuum to being poisoned
+9. You would prefer a brief stint in vacuum to being poisoned
 
 ## Limitations
 
@@ -41,4 +40,14 @@ If any of these are false, the hardsuit controller program may behave in undesir
 
    The developers think this bug is interesting and makes hot planets more difficult, so they are leaving it in (for now).
 
-   
+## Bugs
+
+### The "Three Clicks" bug
+
+For some reason my filtering stuff is happening across two ticks:
+
+1. Filter turns on
+2. Release turns off and target is set to 202 kPa
+3. time passes
+4. Filter turns off, release turns on, target set to 101 kPa
+
