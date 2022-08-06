@@ -46,7 +46,7 @@ const LOW_PRESSURE = 1
 const MINIMUM_SAFE_PRESSURE = 20
 # if we drop below this partial pressure, we need to start filtering
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 16
-# if we have less than this partial pressure of CO2, we're good to stop filtering
+# if we have less than this partial pressure of CO2, we're good to stop filtering TODO REMOVE
 const TARGET_CO2_PARTIAL_PRESSURE = 3
 # Expected minimum oxygen ratio you'll encounter
 const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
@@ -54,15 +54,12 @@ const EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO = 0.22
 const MINIMUM_ENVIRONMENT_PRESSURE = MINIMUM_OXYGEN_PARTIAL_PRESSURE / EXPECTED_MINIMUM_AIRMIX_OXYGEN_RATIO
 # 607.95 kPa, but anything more than 2 atm is suss
 const MAXIMUM_ENVIRONMENT_PRESSURE = ONE_ATMOSPHERE * 2
-# normal release pressure in kPa
-const DEFAULT_PRESSURE_SETTING = ONE_ATMOSPHERE * 1
 # minimum release pressure in kPa
 const MINIMUM_RELEASE_PRESSURE_SETTING = 0
 # maximum release pressure in kPa
 const MAXIMUM_RELEASE_PRESSURE_SETTING = 202.65
 # how much non-O2 non-C02 gas do we allow?
-const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
-const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
+const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = MAXIMUM_RELEASE_PRESSURE_SETTING - MINIMUM_OXYGEN_PARTIAL_PRESSURE
 # maximum toxin partial pressure in kPa before things are bad for humans
 const MAXIMUM_TOXIN_PARTIAL_PRESSURE = 0.5
 # maximum nitrous oxide partial pressure before we start getting stunned
@@ -246,22 +243,31 @@ nor r15 unsafe flushing
 and r15 r15 helmetOpen
 helmet.Open = r15
 
+# if not filtering or flushing, the default pressure setting should be:
+#   suit.PressureSetting = max(0, MINIMUM_OXYGEN_PARTIAL_PRESSURE - oxygenPartialPressure) + internalPressure
+r15 = MINIMUM_OXYGEN_PARTIAL_PRESSURE - oxygenPartialPressure
+sgtz r14 r15
+select r15 r14 r14 0
+add r15 r15 internalPressure
+# r15 = targetPressure, done with r14
+
 # Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
 # This is actually a bug, but the devs like it so they're leaving it in?
-select r15 filtering MAXIMUM_RELEASE_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
+select r14 filtering MAXIMUM_RELEASE_PRESSURE_SETTING r15
 
 # override the pressure back to default if oxygenPartialPressureLow == 1
 # (this is where we finally use r13 from up in the filtering calculation, but we still aren't done with it)
-select r15 r13 DEFAULT_PRESSURE_SETTING r15
+select r14 r13 r15 r14
 
 # Handle autoflush by setting the target pressure to zero
-select r15 flushing MINIMUM_RELEASE_PRESSURE_SETTING r15
-# r15 is now our desired pressure setting
-suit.PressureSetting = r15
+select r14 flushing MINIMUM_RELEASE_PRESSURE_SETTING r14
+# r14 is now our desired pressure setting
+
+suit.PressureSetting = r14
 
 # suit.AirRelease = (!filtering || oxygenPartialPressureLow) && helmetClosed
 # We don't care if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
-# (again we use r13 from up in the filtering calculation, but now we'rd done with it)
+# (again we use r13 from up in the filtering calculation, but now we're done with it)
 seqz r15 filtering
 or r15 r15 r13
 and r15 r15 helmetClosed
