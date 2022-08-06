@@ -64,9 +64,9 @@ const MAXIMUM_ENVIRONMENT_PRESSURE = 202.65
 # normal release pressure in kPa
 const DEFAULT_PRESSURE_SETTING = 101.325
 # minimum release pressure in kPa
-const MINIMUM_ENVIRONMENT_PRESSURE_SETTING = 0
+const MINIMUM_RELEASE_PRESSURE_SETTING = 0
 # maximum release pressure in kPa
-const MAXIMUM_ENVIRONMENT_PRESSURE_SETTING = 202.65
+const MAXIMUM_RELEASE_PRESSURE_SETTING = 202.65
 # how much non-O2 non-C02 gas do we allow?
 const MAXIMUM_MYSTERY_GAS_RATIO = 1 - (MINIMUM_OXYGEN_PARTIAL_PRESSURE / DEFAULT_PRESSURE_SETTING)
 const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMUM_MYSTERY_GAS_RATIO
@@ -238,9 +238,14 @@ and r14 r14 filtering
 or r15 r13 r14
 and filtering r15 helmetClosed
 
+# safety check to make sure we don't overpressure the suit
+# internalPressureHigh = internalPressure > MAXIMUM_RELEASE_PRESSURE_SETTING
+sgt r15 internalPressure MAXIMUM_RELEASE_PRESSURE_SETTING
+
 # We must filter in order for the flush to work
-# suit.Filtration = flushing || filtering
-or r15 flushing filtering
+# suit.Filtration = internalPressureHigh || flushing || filtering
+or r15 r15 flushing
+or r15 r15 filtering
 suit.Filtration = r15
 
 # helmet.Lock = unsafe && helmetClosed
@@ -255,14 +260,14 @@ helmet.Open = r15
 
 # Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
 # This is actually a bug, but the devs like it so they're leaving it in?
-select r15 filtering MAXIMUM_ENVIRONMENT_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
+select r15 filtering MAXIMUM_RELEASE_PRESSURE_SETTING DEFAULT_PRESSURE_SETTING
 
 # override the pressure back to default if oxygenPartialPressureLow == 1
 # (this is where we finally use r13 from up in the filtering calculation, but we still aren't done with it)
 select r15 r13 DEFAULT_PRESSURE_SETTING r15
 
 # Handle autoflush by setting the target pressure to zero
-select r15 flushing MINIMUM_ENVIRONMENT_PRESSURE_SETTING r15
+select r15 flushing MINIMUM_RELEASE_PRESSURE_SETTING r15
 # r15 is now our desired pressure setting
 suit.PressureSetting = r15
 
