@@ -114,7 +114,7 @@ var flushing
 # This is true if the external atmosphere appears unsafe.
 var unsafe
 
-# Are we currently filtering?
+# Are we currently filtering CO2?
 # We pull this state from the device instead of storing
 # it internally to allow the user to trigger a filter.
 var filtering = suit.Filtration
@@ -223,22 +223,24 @@ sgt r14 externalPressure MAXIMUM_ENVIRONMENT_PRESSURE
 or r13 r15 r14
 or unsafe unsafe r13
 
-# check for if we need to filter
+# oxygenPartialPressureLow = oxygenPartialPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE
+slt r13 oxygenPartialPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
+# r13 is now oxygenPartialPressureLow. We need this in a few places further down.
+
+# check if we need to be filtering
 # This will start filtering once oxygen partial pressure is at the safety threshold
 # This will stop filtering once the CO2 partial pressure drops below the target value
 # It also stops filtering when the helmet is open.
 # filtering = (
-#   (oxygenPartialPressure < MINIMUM_OXYGEN_PARTIAL_PRESSURE)
+#   oxygenPartialPressureLow
 #   || (
 #       (carbonDioxidePartialPressure > TARGET_CO2_PARTIAL_PRESSURE)
 #       && filtering
 #   )
 #) && helmetClosed
-slt r13 oxygenPartialPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
-# r13 is now oxygenPartialPressureLow. We will save this for later.
-sgt r14 carbonDioxidePartialPressure TARGET_CO2_PARTIAL_PRESSURE
-and r14 r14 filtering
-or r15 r13 r14
+sgt r15 carbonDioxidePartialPressure TARGET_CO2_PARTIAL_PRESSURE
+and r15 r15 filtering
+or r15 r13 r15
 and filtering r15 helmetClosed
 
 # safety check to make sure we don't overpressure the suit
