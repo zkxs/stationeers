@@ -1,53 +1,3 @@
-########################################
-# runtime's Hardsuit controller v1.0.0 #
-########################################
-
-############
-# FEATURES #
-############
-# 1. If your suit needs flushing, it will beep at 
-#    you while autoflushing.  An autoflush is
-#    slower, but more precise, than a manual flush.
-#    Feel free to manually flush too!
-# 2. If the environment is appears unsafe, it closes
-#    and locks your helmet. Not all types of unsafe
-#    environment can be detected. Keeping your
-#    helmet closed is on you!
-# 3. It will micromanage your filter, greatly
-#    prolonging its lifespan. Filtering will
-#    temporarily fuck with release and pressure
-#    settings to avoid dumping O2 to waste due to a
-#    stationeers bug.
-# 4. It will turn the AC off if the external
-#    temperature is safe.  Otherwise, it will set
-#    your AC to the most extreme but still safe
-#    value.
-# 5. It will turn off air flow when your helmet is
-#    open.
-
-###############
-# ASSUMPTIONS #
-###############
-#  1. Your tank is 100% oxygen
-#  2. You inhale oxygen
-#  3. You exhale CO2
-#  4. Your suit is loaded exclusively with CO2
-#     filters
-#  5. CO2 is not toxic in any concentration (the
-#     devs may change this soon)
-#  6. O2 is not toxic in any concentration (the devs
-#     may change this soon)
-#  7. You pressurize your breathable rooms between 1
-#     and 2 atmospheres
-#  8. A 1 atmosphere breathable room contains at
-#     least 22% oxygen
-#  9. You won't use a normal helmet with your
-#     hardsuit
-# 10. You would prefer a brief stint in vacuum to
-#     being poisoned
-# 11. You won't open your helmet in a bad
-#     atmosphere, even if it's unlocked
-
 #############
 # icX notes #
 #############
@@ -65,19 +15,6 @@
 ##############
 # WEIRD SHIT #
 ##############
-# When the hardsuit helmet is open, its gas ratio sensor doesn't work as expectd.
-# It appears that the helmet only mixes with the environment as it is closed.
-# This makes it impossible to auto-close the helmet if the room is contaminated.
-#
-# While we're at it, why the fuck can't the hardsuit just read the external gas mix directly?
-#
-# Also, the funny "vent before cool" bug that causes you to yeet O2 into waste on hot planets
-# is not, in fact, funny and should be fixed by the devs. But I can work around it.
-#
-# The ONLY way your suit can (automatically) vent excess pressure is if the filters are on.
-# The manual "flush helmet" button is special and its behavior cannot be replicated via logic.
-# The manual flush is much faster and also bypasses the filters.
-#
 # While the suit has its own sensors, they suck. This is because the helmet and suit have separate
 # atmospheres that mix over time. The helmet atmosphere is the actual important one that you breathe
 # from, but the filtering is done in the suit. This means as you're filtering the helmet always lags
@@ -95,14 +32,12 @@
 # r13 - r15 are temporary registers
 # This leaves r10 - r12, ra, and sp free
 
-############
-# THE CODE #
-############
-
-# This is useful for debugging ic10 generation
+###############
+# DEBUG STUFF #
+###############
 #use aliases
 #use comments
-# cannot `use constants` if you use arithmetic in constants
+# cannot `use constants` because I use arithmetic in my const definitions
 
 #############
 # Constants #
@@ -152,6 +87,10 @@ const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = DEFAULT_PRESSURE_SETTING * MAXIMU
 alias suit   db
 alias helmet d0
 alias pack   d1
+
+############
+# THE CODE #
+############
 
 # This is where the main loop begins
 start_of_loop:
@@ -304,23 +243,15 @@ and filtering r15 helmetClosed
 or r15 flushing filtering
 suit.Filtration = r15
 
-# handle unsafe external environment
-# if (unsafe || flushing) && helmetOpen
-or r15 unsafe flushing
-and r15 r15 helmetOpen
-beqz r15 helmet_closed
-    # unlock the helmet
-    helmet.Lock = 0
-    yield
-    # then close the helmet
-    helmet.Open = 0
-    yield
-    # this is weird because we steal control from our for 2 ticks to do this.
-    # however, getting that helmet closed is our absolute highest priority.
-helmet_closed:
+# helmet.Lock = unsafe && helmetClosed
+and r15 unsafe helmetClosed
+helmet.Lock = r15
 
-# finally, set the helmet to the desired lock state
-helmet.Lock = unsafe
+# helmetDoesNotNeedClosing = !(unsafe || flushing)
+# helmet.Open = helmet.Open && helmetDoesNotNeedClosing
+nor r15 unsafe flushing
+and r15 r15 helmetOpen
+helmet.Open = r15
 
 # Fuck with pressure while filtering to avoid dumping O2 to waste in hot environments.
 # This is actually a bug, but the devs like it so they're leaving it in?
@@ -337,7 +268,7 @@ suit.PressureSetting = r15
 
 # suit.AirRelease = (!filtering || oxygenPartialPressureLow) && helmetClosed
 # We don't care if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
-# (again we use r13 from up in the filtering calculation)
+# (again we use r13 from up in the filtering calculation, but now we'rd done with it)
 seqz r15 filtering
 or r15 r15 r13
 and r15 r15 helmetClosed

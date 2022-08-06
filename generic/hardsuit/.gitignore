@@ -1,2 +1,3 @@
 *.ic10
 !*.release.ic10
+!*.header.ic10
