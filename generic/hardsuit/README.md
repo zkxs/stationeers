@@ -4,11 +4,12 @@ Slap this into any old hardsuit and it'll manage things for you.
 
 ## Features
 
-1. If your suit needs flushing, it will beep at  you while autoflushing.  An autoflush is slower, but more precise, than a manual flush. Feel free to manually flush too!
+1. If your suit needs flushing, it will beep at you while autoflushing. An autoflush is slower, but more precise, than a manual flush. Feel free to manually flush too!
 2. If the environment is appears unsafe, it closes and locks your helmet. Not all types of unsafe environment can be detected. Keeping your helmet closed is on you!
-3. It will micromanage your filter, greatly prolonging its lifespan. Filtering will temporarily fuck with release and pressure settings to avoid dumping O2 to waste due to a stationeers bug.
+3. It will micromanage your filter, greatly prolonging its lifespan. Filtering will temporarily fuck with release and pressure settings to avoid dumping O2 to waste due to a Stationeers bug.
 4. It will turn the AC off if the external temperature is safe. Otherwise, it will set your AC to the most extreme but still safe value.
 5. It will turn off air flow when your helmet is open.
+6. It will minimize the moles of oxygen you consume.
 
 ## Assumptions
 
@@ -42,6 +43,10 @@ If any of these are false, the hardsuit controller program may behave in undesir
 
 ## Suit Trivia
 
+### Breathing
+
+Below an oxygen partial pressure of 24 kPa, moles of oxygen your consume are related linearly to the partial pressure. This means that if oxygen is kept at the absolute minimum of 16 kPa vs anything above 24 kPa, you actually consume 1.5 times less oxygen. In other words, this IC will make your oxygen tank last ~50% longer than you're used to.
+
 ### Helmet
 
 - The light uses 5 W per tick, or 10 W per second from the equipped suit's battery.
@@ -51,7 +56,7 @@ If any of these are false, the hardsuit controller program may behave in undesir
 ### IC Power Cost
 
 - The IC uses 2.5 W per tick, or 5 W per second.
-- Does it still use power if the suit is not equipped?
+- They still use power even if the suit is not equipped.
 
 ### Air Release
 

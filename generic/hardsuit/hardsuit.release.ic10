@@ -1,58 +1,8 @@
-########################################
-# runtime's Hardsuit controller v1.0.0 #
-########################################
-
-############
-# FEATURES #
-############
-# 1. If your suit needs flushing, it will beep at 
-#    you while autoflushing.  An autoflush is
-#    slower, but more precise, than a manual flush.
-#    Feel free to manually flush too!
-# 2. If the environment is appears unsafe, it closes
-#    and locks your helmet. Not all types of unsafe
-#    environment can be detected. Keeping your
-#    helmet closed is on you!
-# 3. It will micromanage your filter, greatly
-#    prolonging its lifespan. Filtering will
-#    temporarily fuck with release and pressure
-#    settings to avoid dumping O2 to waste due to a
-#    stationeers bug.
-# 4. It will turn the AC off if the external
-#    temperature is safe.  Otherwise, it will set
-#    your AC to the most extreme but still safe
-#    value.
-# 5. It will turn off air flow when your helmet is
-#    open.
-
-###############
-# ASSUMPTIONS #
-###############
-#  1. Your tank is 100% oxygen
-#  2. You inhale oxygen
-#  3. You exhale CO2
-#  4. Your suit is loaded exclusively with CO2
-#     filters
-#  5. CO2 is not toxic in any concentration (the
-#     devs may change this soon)
-#  6. O2 is not tooxic in any concentration (the
-#     devs may change this soon)
-#  7. You pressurize your breathable rooms between 1
-#     and 2 atmospheres
-#  8. A 1 atmosphere breathable room contains at
-#     least 22% oxygen
-#  9. You won't use a normal helmet with your
-#     hardsuit
-# 10. You would prefer a brief stint in vacuum to
-#     being poisoned
-# 11. You won't open your helmet in a bad
-#     atmosphere, even if it's unlocked
-
-bdse d0 55
-s db Filtration 0
-s db AirRelease 0
-s db On 0
-j 123
+bdse d0 5         # runtime's hardsuit manager
+s db Filtration 0 # version 1.1.0
+s db AirRelease 0 # transpiled with icX
+s db On 0         # source: https://bit.ly/3zDNjBW
+j 78
 l r2 db Filtration
 l r3 d0 Open
 seqz r4 r3
@@ -63,18 +13,16 @@ l r7 d0 RatioCarbonDioxide
 mul r7 r7 r5
 add r15 r6 r7
 sub r15 r5 r15
+l r13 d0 RatioPollutant
+l r14 d0 RatioVolatiles
+add r13 r13 r14
+mul r13 r13 r5
+sge r14 r13 0.5
 l r13 d0 RatioNitrousOxide
 mul r13 r13 r5
-sge r14 r13 0.010132500000000001
-l r13 d0 RatioPollutant
-mul r13 r13 r5
-sge r13 r13 0.010132500000000001
+sge r13 r13 5
 or r14 r14 r13
-l r13 d0 RatioVolatiles
-mul r13 r13 r5
-sge r13 r13 0.506625
-or r14 r14 r13
-sgt r0 r15 81.325
+sgt r0 r15 153.55
 and r0 r0 r4
 or r0 r0 r14
 l r15 db Error
@@ -85,41 +33,48 @@ l r9 db PressureExternal
 slt r15 r9 1
 l r14 db TemperatureExternal
 select r8 r15 0 r14
-slt r15 r8 274.15
-select r8 r15 274.15 r8
+slt r15 r8 273.65
+select r8 r15 273.65 r8
 move r1 r15
-sgt r14 r8 312.15
-select r8 r14 312.15 r8
+sgt r14 r8 312.65
+select r8 r14 312.65 r8
 or r1 r1 r14
 or r13 r14 r15
 s db On r13
 s db TemperatureSetting r8
-slt r15 r9 90.9090909090909
+slt r15 r9 72.72727272727273
 sgt r14 r9 202.65
 or r13 r15 r14
 or r1 r1 r13
-slt r13 r6 20
-sgt r14 r7 3
-and r14 r14 r2
-or r15 r13 r14
+sgt r15 r5 23
+sgt r14 r7 5
+and r15 r15 r14
+and r15 r15 r2
+sgt r14 r5 192.65
+or r15 r14 r15
 and r2 r15 r4
-or r15 r0 r2
+sgt r15 r5 202.65
+or r15 r15 r0
+or r15 r15 r2
 s db Filtration r15
-or r15 r1 r0
+and r15 r1 r4
+s d0 Lock r15
+nor r15 r1 r0
 and r15 r15 r3
-beqz r15 114
-s d0 Lock 0
-yield
-s d0 Open 0
-yield
-s d0 Lock r1
-select r15 r2 202.65 101.325
-select r15 r13 101.325 r15
-select r15 r0 0 r15
-s db PressureSetting r15
+s d0 Open r15
+sgt r15 r5 190.65
+select r15 r15 19.1 17.1
+sub r15 r15 r6
+add r15 r15 r5
+max r15 r15 23
+select r14 r2 202.65 r15
+slt r13 r6 16
+select r14 r13 r15 r14
+select r14 r0 0 r14
+s db PressureSetting r14
 seqz r15 r2
 or r15 r15 r13
 and r15 r15 r4
 s db AirRelease r15
 yield
-j 50
+j 0
