@@ -6,6 +6,8 @@ The minified ic10 code: [hardsuit.ic10](hardsuit.release.ic10). Copy/paste this 
 
 The source code before minification: [hardsuit.icX](hardsuit.icX). Look at this if you actually want to read the code.
 
+Steam workshop: [runtime's Hardsuit Controller](https://steamcommunity.com/sharedfiles/filedetails/?id=2845816603)
+
 ## Features
 
 Compared to an IC-less hardsuit:
