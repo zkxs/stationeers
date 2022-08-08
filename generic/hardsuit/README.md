@@ -114,5 +114,6 @@ debug displays.
 
 I'm not sure what's clamped. So far:
 - Low temperatures are not clamped and the AC will actually cool to them
+- I haven't checked if high temperatures are clamped, but I fail to see why going above 40C would be useful.
 - Low pressures are not clamped and will cause the filters to dump atmosphere to waste at maximum speed even near 0kPa
-- High pressures are not clamped (but beware of using this as you will overpressure the suit)
+- High pressures are not clamped, but I wouldn't use this to fill faster as you'll overshoot your target.
