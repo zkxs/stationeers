@@ -1,0 +1,14 @@
+# Changes from default
+- Gameplay
+  - First person helmet: true
+  - Hunger/hydration rate: 0.5
+  - Sun orbit period: 2 (20min day, 20min night)
+  - Difficulty: 
+- Video
+  - 2560x1440
+  - 165 hz
+  - No vsync
+  - FoV: 85
+- Controls
+  - Invert inventory scroll: true
+  - Camera sensitivity: 14
