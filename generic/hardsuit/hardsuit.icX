@@ -34,12 +34,10 @@
 const ZERO_CELSIUS = 273.15
 # one atmosphere in kPa
 const ONE_ATMOSPHERE = 101.325
-# Degrees to run under the suit lady warning threshold
-const SUIT_LADY_WIGGLE_ROOM = 0.5
-# -10C for real, but suit lady yells
-const MINIMUM_TEMPERATURE = ZERO_CELSIUS + SUIT_LADY_WIGGLE_ROOM
-# +80C for real, but suit lady yells
-const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 40 - SUIT_LADY_WIGGLE_ROOM
+# -10C for real, but suit lady yells at 0C
+const MINIMUM_TEMPERATURE = ZERO_CELSIUS - 10
+# +80C for real, but suit lady yells at 40C
+const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 80
 # anything beneath this pressure we treat as vacuum
 const LOW_PRESSURE = 1
 # minimum release pressure in kPa
@@ -184,31 +182,21 @@ slt r15 externalPressure LOW_PRESSURE
 r14 = suit.TemperatureExternal
 select temperature r15 0 r14
 
-# clamp temperature to MINIMUM_TEMPERATURE
 # if temperature < MINIMUM_TEMPERATURE
-#     temperature = MINIMUM_TEMPERATURE
 #     unsafe = 1
 slt r15 temperature MINIMUM_TEMPERATURE
-select temperature r15 MINIMUM_TEMPERATURE temperature
 move unsafe r15
 
-# clamp temperature to MAXIMUM_TEMPERATURE
 # if temperature > MAXIMUM_TEMPERATURE
-#     temperature = MAXIMUM_TEMPERATURE
 #     unsafe = 1
 sgt r14 temperature MAXIMUM_TEMPERATURE
-select temperature r14 MAXIMUM_TEMPERATURE temperature
 or unsafe unsafe r14
 
-# NOTE THAT WE USE r15 AND r14 FROM THE PREVIOUS TWO BLOCKS HERE!!! DO NOT REORDER!
-# I don't trust the AC strength enough to toggle it on and off over time
-# If external temperature is in good range, turn the AC off
-# Suit.On = temperature < MINIMUM_TEMPERATURE || temperature > MAXIMUM_TEMPERATURE
-or r13 r14 r15
-suit.On = r13
+# Always run the AC if the helmet is closed
+suit.On = helmetClosed
 
-# Set the target temperature to our clamped external temperature
-suit.TemperatureSetting = temperature
+# Set the target temperature to our desired temperature
+suit.TemperatureSetting = MINIMUM_TEMPERATURE
 
 # NOTE THAT WE STILL USE r15 AND r14 FROM THE PREVIOUS BLOCKS HERE!!! DO NOT REORDER!
 # check if pressure is outside of safe range.
