@@ -14,7 +14,7 @@ Compared to an IC-less hardsuit:
 
 1. ~50x more filter lifespan
 2. ~1.5x longer oxygen lifespan
-3. 11 watts less power usage
+3. ~14.6 watts less power usage
 4. Reduced water consumption. This depends on difficulty. On Easy you won't use *any* water. On harder difficulties you will still use water, but at a reduced rate.
 5. Only needs CO2 filters: bad atmosphere will be automatically flushed. The suit will beep while it is autoflushing.
 6. Closes and locks your helmet in some (but not all) unsafe environments. See [limitations](#limitations).
@@ -83,7 +83,8 @@ Below an oxygen partial pressure of 24 kPa the moles of oxygen you consume are r
 ### Filters
 
 - Filters use 10 J per tick, or 20 W.
-- This means for an IC to break even, it has to run your filters 75% of the time maximum. In practice a filter management IC will run ~2% of the time. Not only will your filters last 50 times longer, they use only ~4 W average. The ~16W filter power savings means the IC effectively *saves* 11 W to install.
+- Filters only consume power and durability when running.
+- This means for an IC to break even, it has to run your filters 75% of the time maximum. In practice a filter management IC will run ~2% of the time. Not only will your filters last 50 times longer, they use only ~0.4 W average. The ~19.6W filter power savings means the IC effectively *saves* 14.6 W to install.
 - Filters will still run even if the suit is not occupied.
 
 ### Air Conditioner
