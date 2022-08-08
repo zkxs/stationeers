@@ -1,0 +1,110 @@
+use aliases
+
+# Aliases
+alias LeftVent d0
+alias RightVent d1
+alias OscillationSwitch d3
+alias PowerDisplay d4
+
+# Prefab Hashes
+const DOOR_HASH = 337416191
+const LEVER_HASH = 1220484876
+const GAS_SENSOR_HASH = -1252983604
+const TURBINE_HASH = 1282191063
+
+# Device indices
+const LEFT_VENT = 0
+const RIGHT_VENT = 1
+
+# Modes
+const VENT_MODE_OUTWARD = 0
+const VENT_MODE_INWARD = 1
+const DISPLAY_MODE_POWER = 2
+
+# Constants
+const NEARLY_VACUUM = 0.1
+const MAX_PIPE_PRESSURE = 30000
+const MAX_ROOM_PRESSURE = 50
+
+# Is true every other tick
+var toggle
+
+# should the vents be on
+var ventsOn
+
+PowerDisplay.On = 1
+PowerDisplay.Mode = DISPLAY_MODE_POWER
+
+start:
+# Handle the toggling
+toggle = seqz(toggle)
+
+# measure pressures
+r15 = d(GAS_SENSOR_HASH).Pressure(Maximum)
+var pressureBelowTarget = slt(r15,MAX_ROOM_PRESSURE)
+var pressureNearlyVacuum = sle(r15,NEARLY_VACUUM)
+
+# Handle door open/close
+# if desiredDoorState && pressureNearlyVacuum
+# then we can open the door
+var desiredDoorState = d(LEVER_HASH).Setting(Maximum)
+and r15 desiredDoorState pressureNearlyVacuum
+sb DOOR_HASH Open r15
+# lock if closed
+r15 = seqz(r15)
+d(DOOR_HASH).Lock = r15
+
+# Handle vent power
+var oscillation = OscillationSwitch.Setting
+# r15 = venting = desiredDoorState && !pressureNearlyVacuum
+r15 = seqz(pressureNearlyVacuum)
+and r15 r15 desiredDoorState
+# if (oscillation && pressureBelowTarget) || venting
+# then vents should be on
+and ventsOn oscillation pressureBelowTarget
+or ventsOn ventsOn r15
+
+# Handle vent directions
+var leftVentDirection = toggle
+var rightVentDirection = seqz(leftVentDirection)
+# If we want to open the door, then force vent directions to inwards
+leftVentDirection = select(desiredDoorState,VENT_MODE_INWARD,leftVentDirection)
+rightVentDirection = select(desiredDoorState,VENT_MODE_INWARD,rightVentDirection)
+move r15 LEFT_VENT
+move r14 leftVentDirection
+jal setup_vent
+move r15 RIGHT_VENT
+move r14 rightVentDirection
+jal setup_vent
+
+# Write power production to display
+r15 = d(TURBINE_HASH).PowerGeneration(Sum)
+PowerDisplay.Setting = r15
+
+yield
+j start
+
+# set up the vent in `dr15` with direction r14
+setup_vent:
+    # VENT_MODE_INWARD is truthy
+    # if VENT_MODE_INWARD
+    #   PressureExternal = 0
+    #   PressureInternal = MAX_PIPE_PRESSURE
+    # else
+    #   PressureExternal = MAX_ROOM_PRESSURE
+    #   PressureInternal = 0
+
+    # PressureExternal
+    #r13 = select(r14,0,MAX_ROOM_PRESSURE)
+
+    # PressureInternal
+    #r12 = select(r14,MAX_PIPE_PRESSURE,0)
+
+
+    dr15.On = ventsOn
+    and r14 r14 ventsOn
+    dr15.Mode = r14
+    #dr15.PressureExternal = r13
+    #dr15.PressureInternal = r12
+
+j ra
