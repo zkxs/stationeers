@@ -63,7 +63,7 @@ If any of these are false, the hardsuit controller program may behave in undesir
 
 ### Breathing
 
-Below an oxygen partial pressure of 24 kPa the moles of oxygen your consume are related linearly to the partial pressure. This means that if oxygen is kept at the absolute minimum of 16 kPa vs anything above 24 kPa, you will consume 1.5 times less oxygen. In other words, this IC will make your oxygen tank last ~1.5x longer than you're used to.
+Below an oxygen partial pressure of 24 kPa the moles of oxygen you consume are related linearly to the partial pressure. This means that if oxygen is kept at the absolute minimum of 16 kPa vs anything above 24 kPa, you will consume 1.5 times less oxygen. In other words, this IC will make your oxygen tank last ~1.5x longer than you're used to.
 
 ### Helmet
 
