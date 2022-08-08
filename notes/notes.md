@@ -24,11 +24,13 @@ login foo
 ## Oxygen
 - Your suit AC is going to have to fix whatever temperature your oxygen tank is, so try to get it to around your suit's target temperature. It's not worth it to try and maximize moles by cooling it.
 
-## Idea gas constant
-- `8.31439971923828`
-
-273.15
-101.325
+## Constants
+| Constant                    | Value                              |
+|-----------------------------|------------------------------------|
+| Idea gas constant           | 8.31439971923828 (kPa*L)/(J\*mole) |
+| One atmosphere              | 101.325 kPa                        |
+| Zero Celsius                | 273.15 K                           |
+| Armstrong limit             | 6.3 kPa                            |
 
 ## Breathing
 - You need 20 kPa to not get hurt
