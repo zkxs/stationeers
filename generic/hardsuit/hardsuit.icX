@@ -34,20 +34,22 @@
 const ZERO_CELSIUS = 273.15
 # one atmosphere in kPa
 const ONE_ATMOSPHERE = 101.325
-# -10C for real, but suit lady yells at 0C
+# -10C for real, but suit lady warns at 0C
 const MINIMUM_TEMPERATURE = ZERO_CELSIUS - 10
-# +80C for real, but suit lady yells at 40C
+# +80C for real, but suit lady warns at 40C
 const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 80
 # anything beneath this pressure we treat as vacuum
 const LOW_PRESSURE = 1
-# minimum release pressure in kPa
-const MINIMUM_RELEASE_PRESSURE_SETTING = 0
-# maximum release pressure in kPa
-const MAXIMUM_RELEASE_PRESSURE_SETTING = 202.65
 # Extra kPa of total internal pressure to keep around for safety
 const MINIMUM_SAFE_PRESSURE_FUDGE_FACTOR = 3
 # pressure below which humans take damage is 20
 const MINIMUM_SAFE_PRESSURE = 20 + MINIMUM_SAFE_PRESSURE_FUDGE_FACTOR
+# I can't see a point at which pressure directly damages you? We'll just make this effectively infinite.
+const MAXIMUM_SAFE_PRESSURE = 9999999999
+# minimum release pressure in kPa. This isn't clamped so this lets us flush at maximum speed, even as we near 0kPa.
+const MINIMUM_RELEASE_PRESSURE_SETTING = -9999999999
+# maximum release pressure in kPa. UI only lets you go to 202.65. Suit critical alarm at 607.95. Suit warning alarm at half that. 
+const MAXIMUM_RELEASE_PRESSURE_SETTING = 607.95
 # if we drop below 16 kPa, we start suffocating. Used for safety checks.
 const MINIMUM_OXYGEN_PARTIAL_PRESSURE = 16
 # extra kPa of O2 to keep around so that we aren't EXACTLY on the edge of suffocation
@@ -227,8 +229,8 @@ or r15 r14 r15
 and filtering r15 helmetClosed
 
 # safety check to make sure we don't overpressure the suit
-# internalPressureHigh = internalPressure > MAXIMUM_RELEASE_PRESSURE_SETTING
-sgt r15 internalPressure MAXIMUM_RELEASE_PRESSURE_SETTING
+# internalPressureHigh = internalPressure > MAXIMUM_SAFE_PRESSURE
+sgt r15 internalPressure MAXIMUM_SAFE_PRESSURE
 
 # We must filter in order for the flush to work
 # suit.Filtration = internalPressureHigh || flushing || filtering

@@ -22,7 +22,7 @@ login foo
 - Any gas will do, so use whatever is plentiful and nontoxic
 
 ## Oxygen
-- Your suit AC is going to have to fix whatever temperature your oxygen tank is, so try to get it to around 20C. It's not worth it to try and maximize moles by cooling it.
+- Your suit AC is going to have to fix whatever temperature your oxygen tank is, so try to get it to around your suit's target temperature. It's not worth it to try and maximize moles by cooling it.
 
 ## Idea gas constant
 - `8.31439971923828`

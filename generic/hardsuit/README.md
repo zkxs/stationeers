@@ -15,9 +15,16 @@ Compared to an IC-less hardsuit:
 1. ~50x more filter lifespan
 2. ~1.5x longer oxygen lifespan
 3. 11 watts less power usage
-4. Only needs CO2 filters: bad atmosphere will be automatically flushed. The suit will beep while it is autoflushing.
-5. Closes and locks your helmet in some (but not all) unsafe environments. See [limitations](#limitations).
-6. Mitigates a Stationeers bug where hot environments cause your oxygen tank to gradually empty into waste.
+4. Reduced water consumption. This depends on difficulty. On Easy you won't use *any* water. On harder difficulties you will still use water, but at a reduced rate.
+5. Only needs CO2 filters: bad atmosphere will be automatically flushed. The suit will beep while it is autoflushing.
+6. Closes and locks your helmet in some (but not all) unsafe environments. See [limitations](#limitations).
+7. Mitigates a Stationeers bug where hot environments cause your oxygen tank to gradually empty into waste.
+
+## Suit Usage Notes
+- Fill your "air" tank with 100% oxygen. Optionally, cool it to -10C to reduce the work your AC has to do.
+- Use at least one CO2 filter. You do not need other types of filter, so don't waste them here.
+- Your jetpack uses gas by mole, so you can fit more moles in by supercooling the propellant canister. Be careful that it doesn't burst if it heats up, though!
+- If you take the suit off the IC will still drain 5 watts. If you frequently leave you suit lying around you might want to yank the battery to prevent this.
 
 ## Assumptions
 
@@ -32,6 +39,9 @@ If any of these are false, the hardsuit controller program may behave in undesir
 7. You pressurize your breathable rooms between 1 and 2 atmospheres
 8. A 1 atmosphere breathable room contains at least 22% oxygen
 9. You would prefer a brief stint in vacuum to being poisoned
+10. You don't mind the suit having some warning icons up all the time
+11. You don't want your suit constantly beep
+12. You don't want to hear you character constantly gasping for air (even if they're fine and not actually dying)
 
 ## Limitations
 
@@ -84,9 +94,10 @@ Below an oxygen partial pressure of 24 kPa the moles of oxygen your consume are 
   - Convection scales linearly with delta-T. As you can run your suit at 0-40C this means you have 40 degrees to play with.
   - Contrived example: if the environment is 80C, you'll use 50% less AC power with a 40C suit vs a 0C suit.
   - Real (vulcan) example: if the environment is 620C, you'll use 3% less AC power running at 40C vs 20C.
-- You should turn the AC off if the external atmosphere is a survivable temperature.
+- You can turn the AC off if the external atmosphere is a survivable temperature.
 - There's no benefit to toggling the AC on and off if the environment is not a survivable temperature.
 - The AC does not run if the suit is not occupied.
+- Your hydration ticks down slower the colder you are. This is linear. On Easy, at -10C you stop using water at all. On Normal it's -20C. On Stationeer it's -35C. Note that if you go past this zero point you start *gaining* hydration. Therefore, you should always keep the AC set to -10C to minimize water consumption.
 
 ### Gas Sensors
 
@@ -98,6 +109,10 @@ you can stop filtering.
 
 ### Debugging
 
-You can set the temperature/pressure settings to out of range values. They will display the set value
-even though functionally they are still clamped. This is useful, as you can abuse the settings as
+You can set the temperature/pressure settings to out of range values. This is useful, as you can abuse the settings as
 debug displays.
+
+I'm not sure what's clamped. So far:
+- Low temperatures are not clamped and the AC will actually cool to them
+- Low pressures are not clamped and will cause the filters to dump atmosphere to waste at maximum speed even near 0kPa
+- High pressures are not clamped (but beware of using this as you will overpressure the suit)
