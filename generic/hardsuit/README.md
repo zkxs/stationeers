@@ -67,7 +67,7 @@ Below an oxygen partial pressure of 24 kPa the moles of oxygen your consume are 
 
 ### Helmet
 
-- The light uses 5 J per tick, or 10 W from the equipped suit's battery.
+- The light uses 50 J per tick, or 100 W from the equipped suit's battery.
 - Flushing does not consume power, and works with no cell. This means if you're out of battery you can manually flush in order to not die. Just flush whenever you get oxygen low or too hot/cold.
 - Normal helmets actually have all the same logic values as a hardsuit helmet, and can be controlled perfectly fine via d0.
 
