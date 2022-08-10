@@ -41,6 +41,8 @@ All the plans and software needed to spin up an atmospheric system.
         - composite walls
         - padded walls
         - padded windows
+      - If you want your base higher than 350 kPa relative pressure you cannot use
+        - window shutter
       - If you want your base higher than 500 kPa relative pressure you cannot use
         - manual hatch
       - If you want your base higher than 1 MPa relative pressure you cannot use
@@ -48,7 +50,8 @@ All the plans and software needed to spin up an atmospheric system.
         - Reinforced windows
       - If you want your base higher than 15 MPa canisters will be crushed
       - These are safe at any pressure
-        - Blast doors
+        - Blast doors (fireproof, pretty cheap)
+        - Airlock gates (can still burn)
         - Iron frames
         - Steel frames
     - Conclusion

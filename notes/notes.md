@@ -69,14 +69,17 @@ login foo
 ### Layout
 - Walls
   - Outer walls MUST be frames
-  - a 1 block void behind the frames
   - interior walls can be composite/padded
+  - a 1 block void between the frames and interior walls in some places for crawlspace
   - interior floor divisions will be more wall, wall side down
 - Substation
   - station batteries
   - large transformers
-- Solar area must be on the substation roof
+- Solar area
+  - must be on the substation roof
   - solars cannot use transformers or we'd need stupid logic replication, so they're going to be all heavy cable
+  - solars either need a little glass house OR to be heavy or they'll get fucked up
+    - would have to use padded windows on Omega Vulcan
   - if the roof gets full, then stop making solars and do something more interesting
   - checkerboard that shit
     ```
@@ -86,7 +89,7 @@ login foo
     ```
 - Wind turbines can be wherever
   - not too far from substation though
-- Maint tunnel spanning the base
+- Maint tunnels spanning the base
   - contains the main heavy power conduit
   - if we need more than 100kW then you get to run another fucking cable
   - wire net for room gas analyzers
@@ -97,6 +100,35 @@ login foo
   - the 4 infinity lathes, each with a stacker on the output
   - bonus stacker
   - recycler -> centrifuge -> a ball pit
+- Initial shitter shack
+  - just large enough to grow some plants in, so maybe 2x2x1
+  - all my gear can be outside
+  - manual doors for the airlock
+- Actual first room: workshop zone, 6x6
+  1. roof: glass solar booth, uses cheapest windows and equalizes with outside via passive vents
+  2. layer of frames
+  3. top story: substation
+  4. layer of walls
+  5. workshop
+  6. layer of walls
+  7. maintenance zone
+  8. frames
+- Second room: Hydroponics Zone. Reserve part for a ladderwell/elevator shaft 8x6
+  1. layer of frames
+  2. top story: habitation area, freezer
+  3. layer of walls
+  4. hydroponics land 1
+  5. layer of walls
+  6. Maintenance zone
+  7. Frames
+- Third room: luxurious realm. Attach to the ladderwell, 8x8
+  1. layer of frames
+  2. hydroponics land 2, stairs up from hydroponics land 1
+  3. layer of walls
+  4. lobby
+  5. layer of walls
+  6. maintenance zone
+  7. frames
 
 ## Hydration
 - You take 0.1 dehydration damage while your hydration is 0
