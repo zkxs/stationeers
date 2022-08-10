@@ -1,0 +1,12 @@
+use aliases
+use constants
+
+alias display1 d0
+alias display2 d1
+alias display3 d2
+start:
+move r1 LogicType.On
+l r0 display2 r1
+s display1 Setting r0
+yield
+j start

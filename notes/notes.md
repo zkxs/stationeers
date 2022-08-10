@@ -47,6 +47,9 @@ login foo
   - What is the volume of a suit?
 
 ## Base Design
+
+### Rooms
+
 - Mandatory
   - Furnace room
   - Workshop
@@ -59,6 +62,41 @@ login foo
   - Control room
   - Observation area
   - Comms tower
+  - Maintenance tunnels
+  - Mining area
+  - Rocket silo
+
+### Layout
+- Walls
+  - Outer walls MUST be frames
+  - a 1 block void behind the frames
+  - interior walls can be composite/padded
+  - interior floor divisions will be more wall, wall side down
+- Substation
+  - station batteries
+  - large transformers
+- Solar area must be on the substation roof
+  - solars cannot use transformers or we'd need stupid logic replication, so they're going to be all heavy cable
+  - if the roof gets full, then stop making solars and do something more interesting
+  - checkerboard that shit
+    ```
+    S.S.S.
+    .S.S.S
+    S.S.S.
+    ```
+- Wind turbines can be wherever
+  - not too far from substation though
+- Maint tunnel spanning the base
+  - contains the main heavy power conduit
+  - if we need more than 100kW then you get to run another fucking cable
+  - wire net for room gas analyzers
+- Lobby
+  - suit storage units
+  - tank fillers?
+- Workshop
+  - the 4 infinity lathes, each with a stacker on the output
+  - bonus stacker
+  - recycler -> centrifuge -> a ball pit
 
 ## Hydration
 - You take 0.1 dehydration damage while your hydration is 0

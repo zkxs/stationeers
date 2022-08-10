@@ -59,7 +59,10 @@ All the plans and software needed to spin up an atmospheric system.
   - One pipenet, connected to rooms via passive vents.
     - This allows easy pressure control without using logic on one billion active vents (each of which would cost 100W regardless of delta-P)
     - Might need a holding tank if it's needing constant filtering.
-    - If *anything* breaks your whole base will drain. Doors won't help you. Perhaps add digital valves? Each one costs 25 Watts to keep open. But how to detect a breach?
+    - Risks of a passive vs active system
+      - If *anything* breaks your whole base will drain. Doors won't help you. Perhaps add digital valves? Each one costs 25 Watts to keep open. But how to detect a breach?
+      - If any room is contaminated it will spread to the whole base
+      - We might have a single tick to detect an issue in a different room and seal our room off
   - The distro pipe will be maintained directly. This reduces expensive temperature correction we'd get from using holding tanks constantly.
     - Filters will engage to remove any gas that is in excess
     - Pumps will engage to add any gas that is lacking
@@ -72,15 +75,21 @@ All the plans and software needed to spin up an atmospheric system.
 
 ## ICs
 
-### Distro Mix Controller
+### Distro Pump Controller
 
-Manages O2, N2, CO2 levels. Each gas needs 1 filter and 1 pump, so that's all 6 device ports. The gas analyzer will be read via `lb`.
+Manages injecting more  O2, N2, CO2. Each gas needs 1 pump, so that's 3 device ports. The gas analyzer will be read via `lb`.
 
-### Distro Toxin Controller
+Will contain a lookup table for each gas O2, N2, CO2 with the following columns:
+- LogicType of the relevant ratio, e.g. `RatioOxygen`
+- minimum acceptable partial pressure
 
-Manages H2, N20, X levels. Each gas needs 1 filter, so that's 3 device ports. We might as well still use `lb` for the gas analyzer.
+### Distro Filter Controller
 
-With the remaining 3 ports we can do something nice, like a low filter alert. This might require using `db.Setting` from the distro mix controller...
+Manages filtering out excess gasses. Each gas needs 1 filter, so that's all 6 device ports. The gas analyzer will be read via `lb`.
+
+Will contain a lookup table for each gas O2, N2, CO2 with the following columns:
+- LogicType of the relevant ratio, e.g. `RatioPollutant`
+- maximum acceptable partial pressure
 
 ### Distro Temperature Controller
 
