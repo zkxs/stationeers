@@ -27,7 +27,7 @@ login foo
 ## Constants
 | Constant                    | Value                              |
 |-----------------------------|------------------------------------|
-| Idea gas constant           | 8.31439971923828 (kPa*L)/(J\*mole) |
+| Idea gas constant           | 8.31439971923828 (kPa*L)/(K\*mol) |
 | One atmosphere              | 101.325 kPa                        |
 | Zero Celsius                | 273.15 K                           |
 | Armstrong limit             | 6.3 kPa                            |

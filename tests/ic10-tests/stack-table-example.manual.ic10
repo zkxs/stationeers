@@ -1,0 +1,48 @@
+# Calculate total heat energy in a grid
+# n = PV/RT
+# Q = ncT = (PVcT)/(RT) = (PVc)/R
+# This uses a stack-based lookup table
+
+alias Display d0
+alias GasSensor d1
+alias accumulator r0
+alias pressure r1
+alias temperature r2
+define STACK_SIZE 12
+define GRID_V_OVER_R 962.1861193 # 8000L / 8.314399719
+
+# Set up the stack
+# Note that this persists until overwritten!
+# Therefore this stack loading could be done from a completely separate program.
+# You can see how this would be HUGE line count savings for larger lookup tables.
+push 21.1
+push LogicType.RatioOxygen
+push 28.2
+push LogicType.RatioCarbonDioxide
+push 20.6
+push LogicType.RatioNitrogen
+push 24.8
+push LogicType.RatioPollutant
+push 20.4
+push LogicType.RatioVolatiles
+push 23
+push LogicType.RatioNitrousOxide
+
+start:
+move sp STACK_SIZE
+move accumulator 0
+l pressure GasSensor Pressure
+l temperature GasSensor Temperature
+
+loop: # sum energy of each gas type
+    pop r15 # load logic type
+    pop r14 # load specific heat
+    l r15 GasSensor r15 # get ratio
+    mul r15 r15 pressure # partial pressure = ratio * pressure
+    mul r15 r15 GRID_V_OVER_R # PV/R
+    mul r15 r15 r14 # PVc/R = Q
+    add accumulator accumulator r15
+bnez sp loop
+s Display Setting accumulator
+yield
+j start
