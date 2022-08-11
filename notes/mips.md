@@ -149,7 +149,9 @@ In summary: Shutdown pauses execution and doesn't reset anything, even the instr
 
 ## Stack as ROM
 
-Because the stack does not get cleared, you can have a separate set of "stack loader" programs to load data into the stack. You can then read this data from your main program using `sp`, `peek`, and `pop`. `pop` in particular is useful as it decrements `sp` without actually nuking the stack contents. This means if you need to iterate over 100 values the best way to do it is to set `sp` to 100, then loop over `pop` while `sp` is nonzero. In other words: consider loading your table in reverse order. You can also do all sorts of interesting graph traversal behavior by storing stack pointers in your stack.
+Because the stack does not get cleared, you can have a separate set of "stack loader" programs to load data into the stack. You can then read this data from your main program using `sp`, `peek`, and `pop`. `pop` in particular is useful as it decrements `sp` without actually nuking the stack contents. This means if you need to iterate over 100 values the best way to do it is to set `sp` to 100, then loop over `pop` while `sp` is nonzero. In other words: consider loading your table in reverse order. [Example of a stack-based lookup table](../tests/ic10-tests/stack-table-example.manual.ic10).
+
+You can also do all sorts of interesting graph traversal behavior by storing stack pointers in your stack.
 
 ## Going Beyond 52 Columns
 
