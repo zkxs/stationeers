@@ -1,55 +1,39 @@
-# Two housings on the same network both run this program.
-# This contains two subprograms, which we'll call A and B.
-# Both subprograms should run in the same tick, but program A should run first.
-# Therefore, the ICs need to figure out who is running first and then choose which subprogram they are in charge of.
+# All housings on a network run this program.
+# Each housing has its own display
+# As chips are added/removed, the remaining chips will calculate what order they run in.
 
 alias Display d0
-alias DaylightSensor d4
-alias OtherHousing d5
-alias correctValue r1
-alias theirValue r2
-define INIT_VALUE -999 # Force init the other guy to this
-define YOU_GO_FIRST 999 # A special value we use to tell the other IC it executes first.
+alias GoButton d1
+alias ExecutionIndex r14
+alias LastIcCount r15
+define HOUSING_HASH -128473777 # IC housing PrefabHash
+define DISPLAY_HASH -815193061 # Display PrefabHash
+move LastIcCount 0
 
-# synchronization loop
-s OtherHousing Setting INIT_VALUE
-init:
-# examine the setting of the other IC
-l theirValue OtherHousing Setting
-l correctValue DaylightSensor Vertical
+start:
+# Indicate we haven't ran yet
+s db Setting 0
 
-# If the other IC's setting already matches the expected value, then we MUST be running second
-beq correctValue theirValue program_b_init
+# Calculate number of ICs on the network
+lb r0 HOUSING_HASH Power Sum
+lb r1 HOUSING_HASH Error Sum
+sub r0 r0 r1 # number of ICs on net == Power - Error
+sne r1 LastIcCount r0 # check if the ic count changed
+move LastIcCount r0
 
-# If the other IC wants us to go first, then we go first
-beq YOU_GO_FIRST theirValue program_a
+# if the ic count did not change, just loop
+beqz r1 end
 
-# Otherwise, just update our setting to the daylight sensor value
-no_change:
-s db Setting correctValue
+# if the ic count DID change, then
+s db Setting 1 # indicate that we have ran
+lb ExecutionIndex HOUSING_HASH Setting Sum # number of ICs that have already ran
+
+brne ExecutionIndex 1 2 # if we're #1, null all displays
+sb DISPLAY_HASH Setting -999
+
+s Display Setting ExecutionIndex
+s Display On 1
+
+end:
 yield
-j init
-
-
-# Put a random even number in the display, this should run first each tick
-program_a:
-rand r0
-mul r0 r0 100
-trunc r0 r0
-mul r0 r0 2
-s Display Setting r0
-yield
-j program_a
-
-program_b_init:
-s db Setting YOU_GO_FIRST
-yield
-# Add 1 to the number in the display, this should run second each tick
-program_b:
-l r0 Display Setting
-add r0 r0 1
-s Display Setting r0
-yield
-j program_b
-
-# If everything worked, once both ICs are slotted you should see a random odd number each tick.
+j start
