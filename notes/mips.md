@@ -60,7 +60,14 @@ Devices: `d0`-`d5`, as well as `db` for the device we're attached to. You can al
 - 16 registers is actually a lot for a 128 line limited program
   - don't be afraid to reserve registers for a value, even if you could be using that register for more than one thing. If you have say, 4 tmp registers that still leaves you 12 reserved registers. 14 if you abuse `sp` and `ra`!
 - use `seqz r0 r0` for inverting `r0`.
-
+- use `exp` and `log` to do powers.  x<sup>y</sup> = *e*<sup>y*ln(x)</sup>
+  ```mips
+  # calculate pow(x, y) = exp(y*log(x))
+  # store result in x
+  log x x
+  mul x x y
+  exp x x
+  ```
 
 # Bizarre Platform Behavior
 
@@ -146,7 +153,7 @@ Because the stack does not get cleared, you can have a separate set of "stack lo
 
 ## Going Beyond 52 Columns
 
-If you paste a program from your clipboard the 52 character line length limit does not apply. It'll just be impossible to edit the overly-long lines in-game.
+If you paste a program from your clipboard the 52 character line length limit does not apply. It'll just be impossible to edit the overly-long lines in-game. This trick cannot be used to bypass the 128-line limit.
 
 ## Free Yield After Jump
 
@@ -170,6 +177,12 @@ This means you can access variables by index. This is very useful for say, a loo
 - Specific heat of that gas
 
 This would allow you to iterate over the table and save *many* lines of code.
+
+## Tick Timing
+- All ICs are executed in series at the end of an ElectricityTick
+- The order in which they are executed is the order in which their housings are registered.
+- Housings are registered when added to a grid.
+- ElectricityTick is ran at the end of a GameTick, notably *after* all atmospheric events have ticked.
 
 # Instructions
 

@@ -1,0 +1,55 @@
+# Two housings on the same network both run this program.
+# This contains two subprograms, which we'll call A and B.
+# Both subprograms should run in the same tick, but program A should run first.
+# Therefore, the ICs need to figure out who is running first and then choose which subprogram they are in charge of.
+
+alias Display d0
+alias DaylightSensor d4
+alias OtherHousing d5
+alias correctValue r1
+alias theirValue r2
+define INIT_VALUE -999 # Force init the other guy to this
+define YOU_GO_FIRST 999 # A special value we use to tell the other IC it executes first.
+
+# synchronization loop
+s OtherHousing Setting INIT_VALUE
+init:
+# examine the setting of the other IC
+l theirValue OtherHousing Setting
+l correctValue DaylightSensor Vertical
+
+# If the other IC's setting already matches the expected value, then we MUST be running second
+beq correctValue theirValue program_b_init
+
+# If the other IC wants us to go first, then we go first
+beq YOU_GO_FIRST theirValue program_a
+
+# Otherwise, just update our setting to the daylight sensor value
+no_change:
+s db Setting correctValue
+yield
+j init
+
+
+# Put a random even number in the display, this should run first each tick
+program_a:
+rand r0
+mul r0 r0 100
+trunc r0 r0
+mul r0 r0 2
+s Display Setting r0
+yield
+j program_a
+
+program_b_init:
+s db Setting YOU_GO_FIRST
+yield
+# Add 1 to the number in the display, this should run second each tick
+program_b:
+l r0 Display Setting
+add r0 r0 1
+s Display Setting r0
+yield
+j program_b
+
+# If everything worked, once both ICs are slotted you should see a random odd number each tick.
