@@ -3,6 +3,7 @@
 You can make end of line comments with `#`.
 
 ## Limits
+
 - 128 lines of code
 - 52 characters per line (not including the \n at the end)
 - Maximum of 128 lines executed in a tick before a forced `yield`
@@ -10,6 +11,7 @@ You can make end of line comments with `#`.
 - You only have six device ports
 
 ## Registers
+
 Normal registers: `r0`-`r15`.
 
 `sp` is the stack pointer. It can also be used as `r16`.
@@ -28,6 +30,7 @@ You may be wondering how to access `db` using `dr0`. Well, `db` is secretly `d21
 
 ## Best Practices
 ### Branching
+
 - if you're just doing assignment in your branching, it's guaranteed better for your line count to just do selects. Compare a branching-based approach to an equivalent `select`-based approach.
   ```mips
   bge a b else # if a < b
@@ -53,6 +56,7 @@ As you only have 16 registers and you often need a register for only a few lines
 Use `seqz r0 r0` for inverting `r0`. While you could do something like `nor r0 r0 r0` that will just confuse people.
 
 ### Exponents
+
 - x<sup>2</sup>
   ```mips
   # pow(x, 2) = x * x
@@ -76,6 +80,7 @@ Use `seqz r0 r0` for inverting `r0`. While you could do something like `nor r0 r
   ```
 
 ### The Stack is a Trap
+
 If you're familiar with stack-based VMs, you might be thinking the stack will be useful for doing math. This is not the case, as arithmetic instructions use registers—*not* stack values. You'd end up burning a bunch of instructions loading and unloading stuff from the stack.
 
 If you're familiar with how call stacks work, you may think using the stack is a great way of keeping track of the return address and parameters for nested function calls, and you're not wrong. Here's an example:
@@ -145,7 +150,7 @@ It looks like assembly and it smells like assembly, but it isn't real assembly. 
 
 ## Golfing
 
-"Golfing" a program is tying to reduce the size of your source code. This is not needed for real assembly, as real assembly is going to use pass through an assembler which will, by its nature, remove things like aliases, labels, comments, and whitespace.
+"Golfing" a program is tying to reduce the size of your source code. This is not needed for real assembly, as real assembly is going to pass through an assembler which will, by its nature, remove things like aliases, labels, comments, and whitespace.
 
 Typically you'd optimize real assembly to minimize CPU cycles or memory. However, the line count limit (while reasonably high for simple programs) is going to be a big limiting factor for larger projects.
 
@@ -165,9 +170,10 @@ select result result result 6
 # end of lookup table
 ```
 
-This awful block of code executes uses a stupid-fall through hack to do a jump table with one line per entry. This is just burning cycles for the sake of saving lines which is incredibly stupid, but this is the type of line count optimization you're incentivized to do.
+This awful block of code executes uses a fall-through hack to do a jump table with one line per entry. This is just burning cycles for the sake of saving lines which is incredibly stupid, but this is the type of line count optimization you're incentivized to do.
 
 ## Abusing Batch Operations
+
 Device ports are your biggest limitation, as you only have 6. Because batch operations (`lb`, `sb`) do not require a device port, they are perfect for abusing. If you can contrive a logic network to only have a single instance of a device type, you can just access it by PrefabHash using `lb` or `sb`. This may have some performance impact, but we're not incentivized to care about that.
 
 If you have two devices of the same type on a network, you can bind one to `d0`, then use `lb` and arithmetic to deduce  the state of the second device without ever using `l` on it directly. For example, if `l r0 d0 Setting` give you a 1, and `lb r0 SOME_HASH Setting Sum` gives you a 10, then we can deduce the second device has a Setting of 9.
@@ -223,7 +229,7 @@ move r0 LogicType.Setting
 # These all do the same thing
 l r1 d0 Setting
 l r1 d0 12
-l r1 d0 r1
+l r1 d0 r0
 ```
 
 This means you can access variables by index. This is very useful for say, a lookup table of each gas where you have 
@@ -242,8 +248,8 @@ This applies to more than just LogicType (although LogicType is the most useful)
 
 ## Tick Timing
 - All ICs are executed in series at the end of an ElectricityTick
-- The order in which they are executed is the reverse order in which their housings were registered.
-- Housings are registered when added to a grid.
+- The order in which they are executed is the reverse order from which their housings were registered.
+- Housings are registered when added to a grid (a.k.a. when built).
 - ElectricityTick is ran at the end of a GameTick, notably *after* all atmospheric events have ticked.
 - It is possible for ICs to programmatically determine their execution order relative to other ICs. ([Video example](https://www.youtube.com/watch?v=m9ZOCTS178o), [example code](../tests/ic10-tests/serial.manual.ic10)). This can be used to establish IC-to-IC communication in a deterministic way.
 
