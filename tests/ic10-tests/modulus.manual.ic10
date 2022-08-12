@@ -1,0 +1,4 @@
+alias Display d0
+
+mod r0 -1.6 1
+s Display Setting r0
