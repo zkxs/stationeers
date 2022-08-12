@@ -215,7 +215,7 @@ Not Allowed:
 
 - Exponents such as `1e100` do not parse
 
-Sort of Allowed
+Sort of Allowed:
 
 - `NaN` parses, but most instructions treat a NaN literal as an error. `define`, however works. Which means you can `define NaN NaN` to get a working NaN literal. If you just need NaN in a register, you can do `sqrt r0 -1` or something similar.
 
