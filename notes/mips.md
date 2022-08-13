@@ -176,13 +176,13 @@ This block of code uses a fall-through hack to create a jump table with one line
 
 Device ports are hugely limited, as you only have 6. Because batch operations (`lb`, `sb`) do not require a device port, they are ripe for abuse. If you can contrive a logic network to only have a single instance of a device type, you can just access it by PrefabHash using `lb` or `sb`. This may have some performance impact, but we're not incentivized to care about that.
 
-If you have two devices of the same type on a network, you can bind one to `d0`, then use `lb` and arithmetic to deduce  the state of the second device without ever using `l` on it directly. For example, if `l r0 d0 Setting` give you a 1, and `lb r0 SOME_HASH Setting Sum` gives you a 10, then we can deduce the second device has a Setting of 9.
+If you have two devices of the same type on a network, you can bind one to `d0`, then use `lb` and arithmetic to deduce  the state of the second device without ever using `l` on it directly. For example, if `l r0 d0 Setting` gives you a 1, and `lb r0 SOME_HASH Setting Sum` gives you a 10, then we can deduce the second device has a Setting of 9.
 
 Finally, some devices have variants than can be abused to get the same behavior but a different PrefabHash. For example, there are two different types of switch that while having the same behavior, have distinct prefab hashes.
 
 ## Isn't Golfing Bad for Readability?
 
-Yes. Small programs shouldn't be golfed so that you can maintain readability. For large programs you should automate your golfing. You edit the ungolfed "source" code, and your minification program generates "compiled" output that you *don't* edit by hand.
+Yes. For small programs it's not worth compromising readability to save lines. For large programs you should automate your golfing. You edit the ungolfed "source" code, and your minification program generates "compiled" output that you *don't* edit by hand.
 
 ## Isn't Golfing Bad for Performance?
 
@@ -285,7 +285,7 @@ Most of this behavior is consistent across different ways of shutting off an IC.
   - stack values are NOT reset
   - instruction counter is reset
 
-In summary: Shutdown pauses execution and doesn't reset anything, even the instruction counter! It will resume where it left off! Unplugging or reprogramming resets the instruction counter and `sp`, but all other registers and the stack contents are NOT reset. Note that values persist to the *chip*, not the housing. You can also persist something to the housing with `db.Setting` if that's helpful.
+In summary: shutdown pauses execution and doesn't reset anything, even the instruction counter! It will resume where it left off! Unplugging or reprogramming resets the instruction counter and `sp`, but all other registers and the stack contents are NOT reset. Note that values persist to the *chip*, not the housing. You can also persist something to the housing with `db.Setting` if that's helpful.
 
 ## Stack as ROM
 
@@ -299,7 +299,7 @@ If you paste a program from your clipboard the 52 character line length limit do
 
 ## Free Yield After Jump
 
-If you jump to the negative of a target line number, e.g. `j -60`, it will perform a yield immediately after the jump. This is a weird quirk of how yields are represented in the mips interpreter. This also means you cannot use this trick for a `j 0` as 0 cannot be negative. (Yes, I know an IEEE-754 float can represent -0.0, but it doesn't actually matter here for .NET reasons).
+If you jump to the negative of a target line number, e.g. `j -60`, it will perform a yield immediately after the jump. This is a weird quirk of how yields are represented in the MIPS interpreter. This also means you cannot use this trick for a `j 0` as 0 cannot be negative. (Yes, I know an IEEE-754 float can represent -0.0, but it doesn't actually matter here for .NET reasons).
 
 ## Tick Timing
 
@@ -309,8 +309,7 @@ All ICs are executed in **series** at the end of an ElectricityTick.
 - This means bidirectional communication within a single tick is impossible. Yes, even if you busy loop.
 - Because IC execution happens in one big batch each tick and isn't "spread out" over time, ICs will always tick in perfect sync with each other. As long as you don't get auto-yielded the way ICs tick is completely deterministic.
 - It is possible for ICs to programmatically determine their execution order relative to other ICs. ([Video example](https://www.youtube.com/watch?v=m9ZOCTS178o), [example code](../tests/ic10-tests/serial.manual.ic10)). This can be used to establish IC-to-IC communication in a deterministic way.
-- The order in which ICs are executed is the reverse order from which their housings were registered. Housings are registered when added to a grid (a.k.a. when built). This order appears to persist across world save/load.
-
+- The order in which ICs are executed is the reverse order from which their housings were registered. Housings are registered when added to a grid (a.k.a. when built). This order appears to persist across world save/load.  
   In other words: **The housing built last executes first.**
 - ElectricityTick is ran at the end of a GameTick, notably *after* all atmospheric events have ticked.
 
