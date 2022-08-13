@@ -222,7 +222,7 @@ Sort of Allowed:
 
 ## Enum Literals
 
-LogicType (e.g. `Setting`) is just another number. Well, actually it's a byte-backed enum. For example, `Setting` has the value `12`. If want to store the value of a LogicType into a register, you can use an enum literal like `LogicType.Setting`.
+LogicType (e.g. `Setting`) is just another number. Well, actually it's a byte-backed enum. For example, `Setting` has the value `12`. If you want to store the value of a LogicType into a register, you can use an enum literal like `LogicType.Setting`.
 
 ```mips
 move r0 LogicType.Setting
