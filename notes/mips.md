@@ -233,7 +233,7 @@ l r1 d0 12
 l r1 d0 r0
 ```
 
-This means you can access variables indirectly, Allowing you to iterate over a table and save *many* lines of code. Take for example a [lookup table of each gas](../tests/ic10-tests/stack-table-example.manual.ic10) where you have 
+This means you can access variables indirectly, allowing you to iterate over a table and save *many* lines of code. Take for example a [lookup table of each gas](../tests/ic10-tests/stack-table-example.manual.ic10) where you have 
 - LogicType of the relevant ratio (e.g. `RatioOxygen`)
 - Specific heat of that gas
 
