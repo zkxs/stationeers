@@ -1,4 +1,4 @@
-# How To Incentive Performant Code
+# How To Incentivize Performant Code
 
 This is a suggestion for how the developers could shift the incentive from golfing to writing performant code.
 
