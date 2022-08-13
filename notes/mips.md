@@ -210,6 +210,7 @@ Allowed:
 
 - Doubles can have thousands separators `1,000.0`, and leading `+100` or trailing `100.0-` signs.
 - `Infinity` and `-Infinity` are valid literals.
+- Various [enum literals](#logictype-is-an-integer)
 
 Not Allowed:
 
@@ -219,13 +220,45 @@ Sort of Allowed:
 
 - `NaN` parses, but most instructions treat a NaN literal as an error. `define`, however works. Which means you can `define NaN NaN` to get a working NaN literal. If you just need NaN in a register, you can do `sqrt r0 -1` or something similar.
 
+## Enum Literals
+
+LogicType (e.g. `Setting`) is just another number. Well, actually it's a byte-backed enum. For example, `Setting` has the value `12`. If want to store the value of a LogicType into a register, you can use an enum literal like `LogicType.Setting`.
+
+```mips
+move r0 LogicType.Setting
+
+# These all do the same thing
+l r1 d0 Setting
+l r1 d0 12
+l r1 d0 r0
+```
+
+This means you can access variables indirectly, Allowing you to iterate over a table and save *many* lines of code. Take for example a [lookup table of each gas](../tests/ic10-tests/stack-table-example.manual.ic10) where you have 
+- LogicType of the relevant ratio (e.g. `RatioOxygen`)
+- Specific heat of that gas
+
+This trick applies to more than just LogicType (although LogicType is the most useful):
+
+- LogicType
+- LogicSlotType
+- LogicReagentMode
+- LogicBatchMethod
+- Every enum type in Assembly-CSharp
+
 ## NaN Checking
-NaN != NaN. This behavior isn't actually a MIPS thing, it's an IEEE-754 thing. This means if you need to check a number `n` for NaN, the best way to do it is:
+NaN does not equal NaN. This behavior isn't actually a MIPS thing, it's an IEEE-754 thing. This means if you need to check a number `n` for NaN, the best way to do it is:
 
 ```mips
 # Check if n is NaN
 sne isNan n n
 ```
+
+## Integer Precision
+This behavior is *also* more IEEE-754 stuff. A double can only exactly represent integer (whole) numbers between -2<sup>53</sup> and 2<sup>53</sup>, inclusive. This means as long as you can keep your integer values in that range you will not see any rounding error. Things that can cause rounding error:
+
+- More than 53 sig-figs in base-2
+- Repeating fractional parts, such as 1/3 or 1/5. Yes, 1/5 is a repeating fractional part because this is a *binary* number, not a decimal!
+- Performing certain floating point operations. For example for some integer, `x` sqrt(`x`<sup>2</sup>) may introduce error into `x`.
 
 ## Shutdown Behavior
 
@@ -268,31 +301,6 @@ If you paste a program from your clipboard the 52 character line length limit do
 
 If you jump to the negative of a target line number, e.g. `j -60`, it will perform a yield immediately after the jump. This is a weird quirk of how yields are represented in the mips interpreter. This also means you cannot use this trick for a `j 0` as 0 cannot be negative. (Yes, I know an IEEE-754 float can represent -0.0, but it doesn't actually matter here for .NET reasons).
 
-## LogicType is an Integer
-
-Well, actually it's a byte. For example, `Setting` has the value `12`. If want to store the value of a LogicType into a register, you can use something like `LogicType.Setting`.
-
-```mips
-move r0 LogicType.Setting
-
-# These all do the same thing
-l r1 d0 Setting
-l r1 d0 12
-l r1 d0 r0
-```
-
-This means you can access variables by index. This allows you to iterate over a table and save *many* lines of code. Take for example a [lookup table of each gas](../tests/ic10-tests/stack-table-example.manual.ic10) where you have 
-- LogicType of the relevant ratio (e.g. `RatioOxygen`)
-- Specific heat of that gas
-
-This trick applies to more than just LogicType (although LogicType is the most useful):
-
-- LogicType
-- LogicSlotType
-- LogicReagentMode
-- LogicBatchMethod
-- Every enum type in Assembly-CSharp
-
 ## Tick Timing
 
 All ICs are executed in **series** at the end of an ElectricityTick.
@@ -302,6 +310,8 @@ All ICs are executed in **series** at the end of an ElectricityTick.
 - Because IC execution happens in one big batch each tick and isn't "spread out" over time, ICs will always tick in perfect sync with each other. As long as you don't get auto-yielded the way ICs tick is completely deterministic.
 - It is possible for ICs to programmatically determine their execution order relative to other ICs. ([Video example](https://www.youtube.com/watch?v=m9ZOCTS178o), [example code](../tests/ic10-tests/serial.manual.ic10)). This can be used to establish IC-to-IC communication in a deterministic way.
 - The order in which ICs are executed is the reverse order from which their housings were registered. Housings are registered when added to a grid (a.k.a. when built). This order appears to persist across world save/load.
+
+  In other words: **The housing built last executes first.**
 - ElectricityTick is ran at the end of a GameTick, notably *after* all atmospheric events have ticked.
 
 # Instructions
