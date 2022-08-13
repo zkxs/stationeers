@@ -1,0 +1,75 @@
+# define your limits
+define MinPartialPressureOxygen 16
+define MinPartialPressureCarbonDioxide 1
+define MinPartialPressureNitrogen 84.325
+define MinPartialPressurePollutant 0
+define MinPartialPressureVolatiles 0
+define MinPartialPressureNitrousOxide 0
+define MaxPartialPressureOxygen 30
+define MaxPartialPressureCarbonDioxide 3
+define MaxPartialPressureNitrogen 118.9875
+define MaxPartialPressurePollutant 0.25
+define MaxPartialPressureVolatiles 0.25
+define MaxPartialPressureNitrousOxide 3
+
+# Set up hash table
+move sp 437
+push 509
+move sp 401
+push 509
+move sp 319
+push 509
+move sp 29
+push 506
+move sp 382
+push 506
+move sp 354
+push 506
+move sp 110
+push 497
+move sp 293
+push 497
+move sp 157
+push 497
+move sp 313
+push 512
+move sp 16
+push 512
+move sp 250
+push 512
+move sp 289
+push 503
+move sp 404
+push 503
+move sp 290
+push 503
+move sp 300
+push 500
+move sp 133
+push 500
+move sp 51
+push 500
+
+# Set up lookup table
+move sp 494
+push LogicType.RatioOxygenInput
+push MinPartialPressureOxygen
+push MaxPartialPressureOxygen
+push LogicType.RatioCarbonDioxideInput
+push MinPartialPressureCarbonDioxide
+push MaxPartialPressureCarbonDioxide
+push LogicType.RatioNitrogenInput
+push MinPartialPressureNitrogen
+push MaxPartialPressureNitrogen
+push LogicType.RatioPollutantInput
+push MinPartialPressurePollutant
+push MaxPartialPressurePollutant
+push LogicType.RatioVolatilesInput
+push MinPartialPressureVolatiles
+push MaxPartialPressureVolatiles
+push LogicType.RatioNitrousOxideInput
+push MinPartialPressureNitrousOxide
+push MaxPartialPressureNitrousOxide
+
+# intentionally error
+j Infinity

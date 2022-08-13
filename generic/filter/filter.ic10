@@ -1,0 +1,44 @@
+# Socket this directly into your filter.
+# Make sure you've run the stack loader on this IC.
+
+alias minPartial r0
+alias maxPartial r1
+alias logicType r2
+alias pressure r3
+alias shouldFilter r4
+alias fnTmp r15
+alias Filter db
+
+start:
+ls fnTmp Filter 0 OccupantHash # filter 0
+jal fn_should_filter
+ls r14 Filter 0 Quantity
+sgt r14 r14 0
+and shouldFilter fnTmp r14
+
+ls fnTmp Filter 1 OccupantHash # filter 1
+jal fn_should_filter
+ls r14 Filter 1 Quantity
+sgt r14 r14 0
+and r14 fnTmp r14
+or shouldFilter shouldFilter r14
+s Filter On shouldFilter
+
+yield
+j start
+
+fn_should_filter: # takes occupantHash from fnTmp, writes shouldFilter to fnTmp, uses r14 as tmp
+div r14 fnTmp 2 # start computing hash
+trunc r14 r14
+div sp fnTmp 4
+trunc sp sp
+add sp r14 sp # hash = TRUNC(oh/2)+TRUNC(oh/4)
+pop sp # jump to lookup table
+pop maxPartial
+pop minPartial
+pop logicType
+l pressure Filter PressureInput
+l r14 Filter logicType # ratio
+mul pressure pressure r14 # partial pressures
+sgt fnTmp pressure maxPartial # shouldFilter = pressure > maxPartial
+j ra
