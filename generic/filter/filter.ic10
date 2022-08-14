@@ -1,44 +1,123 @@
-# Socket this directly into your filter.
+# Filtration unit MUST contain two matched filters.
+# filterX and pumpX must go to the same gas.
+# If MinPartialPressure = 0 then pump is not needed.
 # Make sure you've run the stack loader on this IC.
-
-alias minPartial r0
-alias maxPartial r1
-alias logicType r2
-alias pressure r3
-alias shouldFilter r4
-alias fnTmp r15
-alias Filter db
-
+# DEFINE YOUR LIMITS HERE!
+define MinPartialPressureOxygen 16
+define MaxPartialPressureOxygen 30
+define MinPartialPressureCarbonDioxide 1
+define MaxPartialPressureCarbonDioxide 3
+define MinPartialPressureNitrogen 84.325
+define MaxPartialPressureNitrogen 118.9875
+define MinPartialPressurePollutant 0
+define MaxPartialPressurePollutant 0.25
+define MinPartialPressureVolatiles 0
+define MaxPartialPressureVolatiles 0.25
+define MinPartialPressureNitrousOxide 0
+define MaxPartialPressureNitrousOxide 3
+alias filter1 d0 # DO NOT TOUCH CODE at or below this point!
+alias filter2 d1
+alias filter3 d2
+alias pump1   d3
+alias pump2   d4
+alias pump3   d5
+move sp 437 # start setting up hash table
+push 509
+move sp 401
+push 509
+move sp 319
+push 509
+move sp 29
+push 506
+move sp 382
+push 506
+move sp 354
+push 506
+move sp 110
+push 497
+move sp 293
+push 497
+move sp 157
+push 497
+move sp 313
+push 512
+move sp 16
+push 512
+move sp 250
+push 512
+move sp 289
+push 503
+move sp 404
+push 503
+move sp 290
+push 503
+move sp 300
+push 500
+move sp 133
+push 500
+move sp 51
+push 500 # done setting up hash table
+move sp 494 # start setting up lookup table
+push LogicType.RatioOxygenInput
+push MinPartialPressureOxygen
+push MaxPartialPressureOxygen
+push LogicType.RatioCarbonDioxideInput
+push MinPartialPressureCarbonDioxide
+push MaxPartialPressureCarbonDioxide
+push LogicType.RatioNitrogenInput
+push MinPartialPressureNitrogen
+push MaxPartialPressureNitrogen
+push LogicType.RatioPollutantInput
+push MinPartialPressurePollutant
+push MaxPartialPressurePollutant
+push LogicType.RatioVolatilesInput
+push MinPartialPressureVolatiles
+push MaxPartialPressureVolatiles
+push LogicType.RatioNitrousOxideInput
+push MinPartialPressureNitrousOxide
+push MaxPartialPressureNitrousOxide # done setting up lookup table
+alias filterDevice r0
+alias pumpDevice r1
+alias minPartial r2
+alias maxPartial r3
+alias logicType r4
+alias pressure r5
+alias shouldFilter r6
+alias tmp3 r13
+alias tmp2 r14
+alias tmp1 r15
 start:
-ls fnTmp Filter 0 OccupantHash # filter 0
-jal fn_should_filter
-ls r14 Filter 0 Quantity
-sgt r14 r14 0
-and shouldFilter fnTmp r14
-
-ls fnTmp Filter 1 OccupantHash # filter 1
-jal fn_should_filter
-ls r14 Filter 1 Quantity
-sgt r14 r14 0
-and r14 fnTmp r14
-or shouldFilter shouldFilter r14
-s Filter On shouldFilter
-
-yield
-j start
-
-fn_should_filter: # takes occupantHash from fnTmp, writes shouldFilter to fnTmp, uses r14 as tmp
-div r14 fnTmp 2 # start computing hash
-trunc r14 r14
-div sp fnTmp 4
-trunc sp sp
-add sp r14 sp # hash = TRUNC(oh/2)+TRUNC(oh/4)
+yield # yield at start so the long setup code doesn't force a yield on us. ~97 instructions in the main loop + ~88 instructions in setup is greater than the 128 instruction limit.
+move filterDevice 0
+device_loop: # loop over devices 0,1,2 -> dr0
+bdns dr0 skip_device # continue if filterDevice not set
+ls tmp1 dr0 0 Quantity # tmp1 = filter 1 quantity
+ls tmp2 dr0 1 Quantity # tmp2 = filter 2 quantity
+add tmp1 tmp1 tmp2 # tmp1 = total filter quantity
+beqz tmp1 skip_device # require unbroken filters
+ls tmp1 dr0 0 OccupantHash # tmp1 = filter 1 hash
+ls tmp2 dr0 1 OccupantHash # tmp2 = filter 2 hash
+bne tmp1 tmp2 skip_device # require matched filters
+beqz tmp1 skip_device # require a filter
+div tmp2 tmp1 2 # tmp2 = occupantHash/2
+trunc tmp2 tmp2 # tmp2 = TRUNC(occupantHash/2)
+div sp tmp1 4 # sp = occupantHash/4
+trunc sp sp # sp = TRUNC(occupantHash/4)
+add sp tmp2 sp # sp = hash = TRUNC(occupantHash/2)+TRUNC(occupantHash/4)
 pop sp # jump to lookup table
-pop maxPartial
-pop minPartial
-pop logicType
-l pressure Filter PressureInput
-l r14 Filter logicType # ratio
-mul pressure pressure r14 # partial pressures
-sgt fnTmp pressure maxPartial # shouldFilter = pressure > maxPartial
-j ra
+pop maxPartial # read lookup table
+pop minPartial # read lookup table
+pop logicType  # read lookup table
+l pressure dr0 PressureInput # totalPressure
+l tmp1 dr0 logicType # ratio
+mul pressure pressure tmp1 # partialPressure = totalPressure * ratio
+sgt tmp1 pressure maxPartial # shouldFilter = partialPressure > maxPartial
+s dr0 On tmp1 # filterDevice.On = shouldFilter
+add pumpDevice filterDevice 3 # pumpDevice = filterDevice + 3
+bdns dr1 skip_device # continue if pumpDevice not set
+sgt tmp1 pressure maxPartial # shouldPump = partialPressure < minPartial
+s dr1 On tmp1 # pumpDevice.On = shouldPump
+skip_device: # jump here to skip the current filter/pump combo
+add filterDevice filterDevice 1 # filterDevice += 1
+blt filterDevice 3 device_loop # loop over devices 0,1,2 -> dr0
+j start
