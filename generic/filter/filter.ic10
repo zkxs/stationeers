@@ -115,7 +115,7 @@ sgt tmp1 pressure maxPartial # shouldFilter = partialPressure > maxPartial
 s dr0 On tmp1 # filterDevice.On = shouldFilter
 add pumpDevice filterDevice 3 # pumpDevice = filterDevice + 3
 bdns dr1 skip_device # continue if pumpDevice not set
-sgt tmp1 pressure maxPartial # shouldPump = partialPressure < minPartial
+slt tmp1 pressure minPartial # shouldPump = partialPressure < minPartial
 s dr1 On tmp1 # pumpDevice.On = shouldPump
 skip_device: # jump here to skip the current filter/pump combo
 add filterDevice filterDevice 1 # filterDevice += 1
