@@ -1,7 +1,6 @@
 # Filtration unit MUST contain two matched filters.
 # filterX and pumpX must go to the same gas.
 # If MinPartialPressure = 0 then pump is not needed.
-# Make sure you've run the stack loader on this IC.
 # DEFINE YOUR LIMITS HERE!
 define MinPartialPressureOxygen 16
 define MaxPartialPressureOxygen 30
