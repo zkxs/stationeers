@@ -1,0 +1,5 @@
+MonoBleedingEdge/
+UnityCrashHandler64.exe*
+UnityPlayer.dll*
+rocketstation.exe*
+rocketstation_Data/
