@@ -57,7 +57,10 @@ If any of these are false, the hardsuit controller program may behave in undesir
 
    As you can see, in hot environments this will cause you to churn gas. This can be mitigated by some silly code that does weird, contrived things to the internal pressure target and release setting when the filters are running.
 
-   The developers think this bug is interesting and makes hot planets more difficult, so they are leaving it in (for now).
+   The developers think this bug is interesting and makes hot planets more difficult, so they are leaving it in (for now). Sources:
+   - https://discordapp.com/channels/276525882049429515/276525882049429515/988971466362085476
+   - https://discordapp.com/channels/276525882049429515/276525882049429515/988972505224081508
+   - https://discordapp.com/channels/276525882049429515/277443989794324480/989009886086058094
 
 ## Suit Trivia
 

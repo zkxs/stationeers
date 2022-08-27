@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0
 
 ### Changed
 - Raise maximum internal pressure limit to 607.95, which is the point where the suit alarm would start beeping incessantly.

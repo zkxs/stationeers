@@ -11,3 +11,6 @@
 | Carbon Dioxide | Black |
 | Pollutants | Gray |
 | Misc | Yellow |
+
+# Wires
+
