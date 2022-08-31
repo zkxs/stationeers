@@ -1,0 +1,17 @@
+Compared to an IC-less hardsuit:
+
+[olist]
+    [*]~50x more filter lifespan
+    [*]~1.5x longer oxygen lifespan
+    [*]~14.6 watts less power usage
+    [*]Reduced water consumption. This depends on difficulty. On Easy you won't use [i]any[/i] water. On harder difficulties you will still use water, but at a reduced rate.
+    [*]Only needs CO2 filters: bad atmosphere will be automatically flushed. The suit will beep while it is autoflushing.
+    [*]Closes and locks your helmet in some (but not all) unsafe environments.
+    [*]Mitigates a Stationeers bug where hot environments cause your oxygen tank to gradually empty into waste.
+[/olist] 
+
+[url=https://github.com/zkxs/stationeers/tree/master/generic/hardsuit]Click here for full documentation and source code[/url]
+
+A bunch of yellow warnings on the suit are expected while you use this, as it runs right up on the limit of what's safe. If you're seeing red suit warnings for more than a very brief time that is bad and you should let me know. Yellow warnings indicate jack squat. Red warnings typically indicate you're dying.
+
+Designed for humans. HEM droids are probably fine. It will kill zrilians.

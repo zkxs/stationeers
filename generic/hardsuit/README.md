@@ -42,6 +42,7 @@ If any of these are false, the hardsuit controller program may behave in undesir
 10. You don't mind the suit having some warning icons up all the time
 11. You don't want your suit constantly beep
 12. You don't want to hear you character constantly gasping for air (even if they're fine and not actually dying)
+13. You have 100% healthy lungs
 
 ## Limitations
 
@@ -61,6 +62,14 @@ If any of these are false, the hardsuit controller program may behave in undesir
    - https://discordapp.com/channels/276525882049429515/276525882049429515/988971466362085476
    - https://discordapp.com/channels/276525882049429515/276525882049429515/988972505224081508
    - https://discordapp.com/channels/276525882049429515/277443989794324480/989009886086058094
+
+## What's Up With all the Suit Alerts?
+
+Suit alerts come in two flavors: warning and critical.
+
+**Warning** alerts have a yellow icon, and play an audio alert only once. They indicate you are approaching a dangerous value, and can generally be ignored. This IC makes no effort to keep you out of the warning range, and you are expected to just ignore all the pretty yellow icons in the corner of your HUD.
+
+**Critical** alerts have a red icon, and beep at you continuously until cleared. They indicate you have reached a dangerous value, and should generally not be ignored. This IC will do its best to keep you out of the critical range simply because the incessant beeping is awful, and I hate it.
 
 ## Suit Trivia
 
