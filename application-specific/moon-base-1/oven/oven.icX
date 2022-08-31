@@ -1,0 +1,74 @@
+use aliases
+
+# volume pump for anti-melting reasons
+alias InnerSwitch d1
+alias ExternalDoor d2
+alias InternalDoor d3
+alias TurboPump d4
+alias AirlockSensor d5
+alias InternalSensor d0
+
+# used for outer switch
+const SWITCH_HASH = 321604921
+
+# how close to vacuum is close enough?
+const VACUUM_THRESHOLD = 0.1
+# to make my pump math happy
+const VACUUM_TARGET = -10000
+
+# how close to oven is close enough?
+const OVEN_THRESHOLD = 10
+
+const TURBO_PUMP_MAXIMUM_SETTING = 1000
+
+# L/s per kPa difference
+const TURBO_PUMP_SCALE = 10
+
+# 1 for interior (oven) side. 0 for exterior (vacuum) side.
+var desiredStateInterior
+
+start:
+
+# desiredStateInterior = OuterSwitch.Setting ^ innerSwitch.On
+# r15 = outer switch setting
+r15 = d(SWITCH_HASH).Setting(Maximum)
+r14 = InnerSwitch.On
+xor desiredStateInterior r15 r14
+db.Setting = desiredStateInterior
+
+# ExternalDoor.Open = (AirlockSensor.Pressure <= VACUUM_THRESHOLD) && !desiredStateInterior
+var airlockPressure = AirlockSensor.Pressure
+r15 = sle(airlockPressure,VACUUM_THRESHOLD)
+r14 = seqz(desiredStateInterior)
+and r14 r15 r14
+ExternalDoor.Open = r14
+
+# InternalDoor.Open = (Abs(AirlockSensor.Pressure - InternalSensor.Pressure) <= OVEN_THRESHOLD) && desiredStateInterior
+var ovenPressure = InternalSensor.Pressure
+r15 = airlockPressure - ovenPressure
+abs r15 r15
+r15 = sle(r15,OVEN_THRESHOLD)
+and r15 r15 desiredStateInterior
+InternalDoor.Open = r15
+
+# r15 = neitherDoorOpen = !(ExternalDoor.Open || InternalDoor.Open)
+nor r15 r14 r15
+# TurboPump.On = neitherDoorOpen
+TurboPump.On = r15
+
+var targetPressure = select(desiredStateInterior,ovenPressure,VACUUM_TARGET)
+# pressureDelta = targetPressure - airlockPressure
+r15 = targetPressure - airlockPressure
+
+# mode 1 is for INTO lock, or if targetPressure > airlockPressure
+r14 = sgtz(r15)
+TurboPump.Mode = r14
+
+# TurboPump.Setting = Min(Abs(pressureDelta) * TURBO_PUMP_SCALE, TURBO_PUMP_MAXIMUM_SETTING)
+abs r15 r15
+mul r15 r15 TURBO_PUMP_SCALE
+min r15 r15 TURBO_PUMP_MAXIMUM_SETTING
+TurboPump.Setting = r15
+
+yield
+j start
