@@ -12,20 +12,23 @@ alias InternalSensor d0
 const SWITCH_HASH = 321604921
 
 # how close to vacuum is close enough?
-const VACUUM_THRESHOLD = 0.1
+const VACUUM_THRESHOLD = 0.5
 # to make my pump math happy
 const VACUUM_TARGET = -10000
 
 # how close to oven is close enough?
-const OVEN_THRESHOLD = 10
+const OVEN_THRESHOLD = 25
 
 const TURBO_PUMP_MAXIMUM_SETTING = 1000
 
 # L/s per kPa difference
-const TURBO_PUMP_SCALE = 10
+const TURBO_PUMP_SCALE = 2
 
 # 1 for interior (oven) side. 0 for exterior (vacuum) side.
 var desiredStateInterior
+
+var externalDoorOpen
+var internalDoorOpen
 
 start:
 
@@ -36,23 +39,25 @@ r14 = InnerSwitch.On
 xor desiredStateInterior r15 r14
 db.Setting = desiredStateInterior
 
-# ExternalDoor.Open = (AirlockSensor.Pressure <= VACUUM_THRESHOLD) && !desiredStateInterior
+# externalDoorOpen = ((AirlockSensor.Pressure <= VACUUM_THRESHOLD) || externalDoorOpen) && !desiredStateInterior
 var airlockPressure = AirlockSensor.Pressure
 r15 = sle(airlockPressure,VACUUM_THRESHOLD)
+or r15 r15 externalDoorOpen
 r14 = seqz(desiredStateInterior)
-and r14 r15 r14
-ExternalDoor.Open = r14
+and externalDoorOpen r15 r14
+ExternalDoor.Open = externalDoorOpen
 
-# InternalDoor.Open = (Abs(AirlockSensor.Pressure - InternalSensor.Pressure) <= OVEN_THRESHOLD) && desiredStateInterior
+# internalDoorOpen = ((Abs(AirlockSensor.Pressure - InternalSensor.Pressure) <= OVEN_THRESHOLD) || internalDoorOpen) && desiredStateInterior
 var ovenPressure = InternalSensor.Pressure
 r15 = airlockPressure - ovenPressure
 abs r15 r15
 r15 = sle(r15,OVEN_THRESHOLD)
-and r15 r15 desiredStateInterior
-InternalDoor.Open = r15
+or r15 r15 internalDoorOpen
+and internalDoorOpen r15 desiredStateInterior
+InternalDoor.Open = internalDoorOpen
 
 # r15 = neitherDoorOpen = !(ExternalDoor.Open || InternalDoor.Open)
-nor r15 r14 r15
+nor r15 externalDoorOpen internalDoorOpen
 # TurboPump.On = neitherDoorOpen
 TurboPump.On = r15
 
