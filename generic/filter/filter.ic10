@@ -103,6 +103,7 @@ trunc tmp2 tmp2 # tmp2 = TRUNC(occupantHash/2)
 div sp tmp1 4 # sp = occupantHash/4
 trunc sp sp # sp = TRUNC(occupantHash/4)
 add sp tmp2 sp # sp = hash = TRUNC(occupantHash/2)+TRUNC(occupantHash/4)
+mod sp sp 494 # sp = hash % 494
 pop sp # jump to lookup table
 pop maxPartial # read lookup table
 pop minPartial # read lookup table
