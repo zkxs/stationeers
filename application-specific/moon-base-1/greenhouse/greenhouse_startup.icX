@@ -1,6 +1,6 @@
 # Constants
 const POWER = 1
-const LOCK = 1
+const LOCK = 0
 
 # Color codes
 const Blue   = 0
