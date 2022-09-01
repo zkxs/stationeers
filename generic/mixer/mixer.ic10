@@ -1,15 +1,15 @@
 # Automatic mixer control for inputs of differing
 # temperature. Author: runtime. Version: 1.0.0
 
-define moles1 1         # Desired moles from input 1
-define moles2 2         # Desired moles from input 2
+define moles1 2         # Desired moles from input 1
+define moles2 1         # Desired moles from input 2
 define pressure 100     # Desired output pressure
 alias mixer   d0        # The gas mixer to control
 alias unused1 d1
 alias unused2 d2
 alias gas1    d3        # Analyzer on input 1
 alias gas2    d4        # Analyzer on input 2
-alias gasOut  d5        # Analyzer on output
+alias gasOut  d5        # Analyzer on output. Optional. If absent, you must control mixer.On
 alias t1n1    r0        # Temp1 * moles1
 alias acc     r1        # Accumulator
 
@@ -22,8 +22,10 @@ add acc t1n1 acc # acc=T1*n1+T2*n2
 div acc t1n1 acc # acc=T1*n1/(T1*n1+T2*n2)
 mul acc acc 100 # acc=T1*n1*100/(T1*n1+T2*n2)
 s mixer Setting acc # set mixer ratio
+bdns gasOut end
 l acc gasOut Pressure
 slt acc acc pressure # acc = outPressure < target
 s mixer On acc # On = outPressure < target
+end:
 yield
 j start
