@@ -1,6 +1,5 @@
 # Gas mixing
-- Gas mixing is done by volume, but you actually care about mixing by moles
-- So you can either equalize temperature, or just do math
+- Gas mixing is done by volume, but you actually care about mixing by moles. So you can either equalize the temperature of your inputs, or just do math to calculate the correct `Setting`.
 
 ## The Game Code
 
