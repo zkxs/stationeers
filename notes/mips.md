@@ -233,7 +233,7 @@ l r1 d0 12
 l r1 d0 r0
 ```
 
-This means you can access variables indirectly, allowing you to iterate over a table and save *many* lines of code. Take for example a [lookup table of each gas](../tests/ic10-tests/stack-table-example.manual.ic10) where you have 
+This means you can access variables indirectly, allowing you to iterate over a table and save *many* lines of code. Take for example a [lookup table of each gas](../tests/ic10-tests/totalenergy.manual.ic10) where you have 
 - LogicType of the relevant ratio (e.g. `RatioOxygen`)
 - Specific heat of that gas
 
@@ -289,7 +289,7 @@ In summary: shutdown pauses execution and doesn't reset anything, even the instr
 
 ## Stack as ROM
 
-Because the stack does not ever get cleared, you can have a separate set of "stack loader" programs to load data into the stack. You can then read this data from your main program using `sp`, `peek`, and `pop`. `pop` in particular is useful as it decrements `sp` without actually zeroing the stack contents. This means if you need to iterate over 100 values the best way to do it is to set `sp` to 100, then loop over `pop` while `sp` is nonzero. In other words: consider loading your table in reverse order. ([Example of a stack-based lookup table](../tests/ic10-tests/stack-table-example.manual.ic10)).
+Because the stack does not ever get cleared, you can have a separate set of "stack loader" programs to load data into the stack. You can then read this data from your main program using `sp`, `peek`, and `pop`. `pop` in particular is useful as it decrements `sp` without actually zeroing the stack contents. This means if you need to iterate over 100 values the best way to do it is to set `sp` to 100, then loop over `pop` while `sp` is nonzero. In other words: consider loading your table in reverse order. ([Example of a stack-based lookup table](../tests/ic10-tests/totalenergy.manual.ic10)).
 
 You can also do all sorts of interesting graph traversal behavior by storing stack pointers in your stack.
 

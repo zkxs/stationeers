@@ -1,0 +1,32 @@
+use aliases
+
+const MODE_HORIZONTAL = 1
+
+const DAYLIGHT_SENSOR_HASH = 1076425094
+const EXTENDABLE_RADIATOR_HASH = -566775170
+# 1000L in the radiator, 1000L in the pipenet
+const VOLUME = 2000
+const IDEAL_GAS_CONSTANT = 8.31439971923828
+const SPECIFIC_HEAT_WATER = 72
+const C_TIMES_V_OVER_R = SPECIFIC_HEAT_WATER * VOLUME / IDEAL_GAS_CONSTANT
+
+alias DaylightSensor d0
+alias PipeAnalyzer d1
+
+start:
+DaylightSensor.Mode = MODE_HORIZONTAL
+PipeAnalyzer.On = 1
+
+var vertical = DaylightSensor.Horizontal
+round vertical vertical
+bgez vertical done_adding
+add vertical vertical 360
+done_adding:
+
+# Q = ncT = (PVcT)/(RT) = (PVc)/R = P * (c*V/R)
+var pressure = PipeAnalyzer.Pressure
+var energy = pressure * C_TIMES_V_OVER_R
+sp = vertical
+push energy
+yield
+j start

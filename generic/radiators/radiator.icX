@@ -1,0 +1,53 @@
+use aliases
+
+const ZERO_CELSIUS = 273.15
+const TARGET_TEMPERATURE = ZERO_CELSIUS + 20
+const MODE_HORIZONTAL = 1
+const EXTENDABLE_RADIATOR_HASH = -566775170
+
+alias DaylightSensor d0
+alias PipeAnalyzer d1
+
+start:
+DaylightSensor.Mode = MODE_HORIZONTAL
+PipeAnalyzer.On = 1
+
+# Yes this is intentional. It's cursed, but horizontal mode is just BETTER than vertical mode.
+var horizontal = DaylightSensor.Vertical
+var vertical = DaylightSensor.Horizontal
+
+# make the angle go from 0 to 360
+bgez vertical made_positive
+add vertical vertical 360
+made_positive:
+
+# if we are in any of these ranges:
+# -2 to 60
+# 172 to 180
+# -178 to -180
+var canHeat
+# canHeat = vertical in [120, 180]
+sge r15 vertical 120
+sle r14 vertical 180
+and canHeat r15 r14
+# canHeat |= vertical in [0, 60]
+sge r15 vertical 0
+sle r14 vertical 60
+and r15 r15 r14
+or canHeat canHeat r15
+
+var temperature = PipeAnalyzer.Temperature
+var needsCooling = sgt(temperature,TARGET_TEMPERATURE)
+
+# r15 = openRadiator = canHeat || needsCooling
+or r15 canHeat needsCooling
+d(EXTENDABLE_RADIATOR_HASH).Open = r15
+
+# add90ToAngle = needsCooling
+select r15 needsCooling 90 0
+add horizontal horizontal r15
+mod horizontal horizontal 360
+d(EXTENDABLE_RADIATOR_HASH).Horizontal = horizontal
+
+yield
+j start
