@@ -72,26 +72,52 @@ So the TLDR is: keep your furnace room between 101.325 and 368.55 kPa to prevent
 
 Things that won't catch on fire:
 
-- blast doors
+- the beefier doors
+  - blast doors (also pressure immune, which is a nice bonus)
+  - airlock doors (don't go over 1 MPa)
+  - glass door (WTF, but it can only handle a 200 kPa delta, so maybe don't use this)
 - passive vents
 - atmospheric devices (pumps, valves, etc)
-- heavy cable (technically they can, but 10,000K is way too high to reach typically)
+- heavy cable (technically they can burn, but 10,000C is way too high to reach typically)
 - frames
 - hardsuits
-
+- most atmospheric devices
+  - pipes
+  - pumps
+  - pipe analyzer
+  - filtration units
+  - etc
+- gas sensor
+- igniter
+- jetpacks
+- items inside your backpack
+- items inside your uniform
+- items inside your suit
+- items inside your toolbelt
 
 Things that *will* catch on fire:
 
-- Active vents
 - one way valves
-- light cable
-- APC
-- buttons and switches
-- walls and windows
-- any door that's *not* a blast door
+- most electronics
+  - light cable
+  - Active vents
+  - APC
+  - buttons and switches
+  - etc
+- walls
+- windows
+- weaker doors
+  - composite door
+  - manual hatch
+  - airlock gate
+  - interior doors
 - non-hard suits
+- hardsuit backpack
 - your glasses
-- things in your toolbelt
+- anything held in your hand
+- cells in drills, grinders, or welders **NO MATTER HOW DEEPLY THEY ARE NESTED IN INVENTORIES**
+- chutes
+- one-way valves
 
 ## Sterling
 
