@@ -68,9 +68,7 @@ Substituting those values into `P=(QR)/(Vc)` yields 368.55 kPa, assuming the atm
 
 So the TLDR is: keep your furnace room between 101.325 and 368.55 kPa to prevent both radiative cooling and autoignition. That room can now be any temperature and structures won't burn unless sparked.
 
-### What is Fireproof?
-
-Things that won't catch on fire:
+### Things that won't catch on fire
 
 - the beefier doors
   - blast doors (also pressure immune, which is a nice bonus)
@@ -95,7 +93,7 @@ Things that won't catch on fire:
 - items inside your suit
 - items inside your toolbelt
 
-Things that *will* catch on fire:
+### Things that *will* catch on fire
 
 - one way valves
 - most electronics
