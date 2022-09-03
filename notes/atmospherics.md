@@ -119,12 +119,8 @@ So the TLDR is: keep your furnace room between 101.325 and 368.55 kPa to prevent
 
 ## Sterling
 
-- at least 3000 kPa delta-P for optimal
-- wtf bruh. do I need to actively cool the output net?
-  - looks like NO? wtf.
-  - So I'm just forced to pump from output back to input it for that 3MPa delta-P that I need
-
 Some variables:
+
 - _hotInputAtmosphere
   - Atmosphere that exhanges heat heat with the hot/cold piston atmospheres inside the engine
   - Connects to the input pipe
@@ -132,6 +128,14 @@ Some variables:
   - hot piston
 - _coldSideAtmosphere
   - cold piston
+
+Some values:
+
+- Will explode at 11 MPa delta-P from internal tank to environment
+- internal tank is 54L
+- hot side is 5L
+- cold side is 5L
+- hotinput is 10L
 
 mixing simply equalizes two atmospheres  
 here's what it does:
@@ -153,6 +157,7 @@ here's what it does:
 so we care about maximizing three things:
 1. energyDelta
    - make sure the hot side and the cold side are not remotely close to the same temperature. There is no limit on how good this can be.
+   - Run the stirling at a higher working gas pressure
 2. _workingGasEfficiency
    - just use H2, donezo
 1. MachinePressureDifferentialEfficiency
@@ -166,7 +171,7 @@ so to achieve this the INTENDED way:
 - something to lower the pressure of the output net
   - the output pipe is still plenty hot, so just pump it back to the input with whatever compressor is the most power efficient (oh god why do I suspect it will be a fucking active vent)
 
-note that the funny energyDelta Abs() WEIRDLY means we can run the thing in reverse to generate power. This has some WILD ramifications:
+note that the funny energyDelta Abs() WEIRDLY means we can run the thing in reverse to generate power. This has some weird ramifications:
 - something to lower the pressure of the output net
   - the output pipe is still plenty COLD (energy destruction helps), so just pump it back to the input as per normal
 - use something to cool the input
