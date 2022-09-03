@@ -32,6 +32,19 @@ login foo
 | Zero Celsius                | 273.15 K                           |
 | Armstrong limit             | 6.3 kPa                            |
 
+## Important Equations
+
+**Ideal Gas Law**  
+PV=nRT
+
+**Definition of Heat Capacity**  
+Q=ncT
+
+### Derived Equations
+
+**Heat in terms of pressure and volume**  
+QR=PVc
+
 ## Breathing
 - You need 20 kPa to not get hurt
 - Entity.cs
@@ -252,3 +265,42 @@ This bugged function is used in three places:
 | `AtmosphericItem.LeakAir():`           | internal atmos | external atmos | 101.325         | none     | LeakRatio, max 1 | only used for suit leaks               |
 | `Furnace.HandleGasInput():`            | gas output     | internal atmos | ???             | none     | 1                | none, because it is  direction-checked |
 | `TurbineGenerator.OnAtmosphericTick()` | a grid         | the other grid | 101.325         | none     | 1                | infinite power                         |
+
+## Atmospherics
+
+### Autoignition
+
+Active vents autoignite at 300C, like most devices. That's far too low for use in a pressure cooker room. However, the second condition for autoignition is 10MJ of energy in the room, which cannot be reached unless the room is above 368.55 kPa. So as long as you keep the pressure below that point it doesn't matter how hot the room gets: it won't spontaneously combust (unless sparked).
+
+If you're curious where the hell I got that magical "368.55 kPa" number from, here's the math:
+
+`T=Q/(nc)` comes from `Q=ncT`
+`P=nRT/V` comes from `PV=nRT`
+substituting `T=Q/(nc)` into `P=nRT/V` and simplifying gets us `P=(QR)/(Vc)`
+
+`Q` = 10 MJ *(autoignition required energy)*
+`R` = 8.314399719 (kPa*L)/(K*mol) *(ideal gas constant)*
+`V` = 8000 L *(volume of a grid)*
+`c` = 28.2 J/(mol\*K) *(specific heat of CO2, which is the worst-case gas as it can hold the most energy per mole)*
+
+Substituting those values into `P=(QR)/(Vc)` yields 368.55 kPa, assuming the atmosphere is 100% CO2. If it's not you can handle slightly higher pressures. For example, for a 50% CO2 50% X mix your autoignition pressure would be 392.19 kPa
+
+So the TLDR is: keep your furnace room between 101.325 and 368.55 kPa to prevent both radiative cooling and autoignition. That room can now be any temperature and structures won't burn unless sparked.
+
+Things that won't catch on fire:
+
+- blast doors
+- passive vents
+- atmospheric devices (pumps, valves, etc)
+- heavy cable (technically they can, but 10,000K is way too high to reach typically)
+- frames
+
+Things that *will* catch on fire:
+
+- Active vents
+- one way valves
+- light cable
+- APC
+- buttons and switches
+- walls and windows
+- any door that's *not* a blast door
