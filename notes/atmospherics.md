@@ -22,13 +22,16 @@ Q=ncT
 QR=PVc
 
 ## Jetpack
+
 - It emits moles of gas, therefore you might as well supercool your canister
 - Any gas will do, so use whatever is plentiful and nontoxic
 
 ## Oxygen
+
 - Your suit AC is going to have to fix whatever temperature your oxygen tank is, so try to get it to around your suit's target temperature. It's not worth it to try and maximize moles by cooling it.
 
 ## Breathing
+
 - You need 20 kPa total pressure to not get hurt
 - Entity.cs
 - But lets do the math and find how how good this is.
@@ -47,16 +50,17 @@ QR=PVc
 Active vents autoignite at 300C, like most devices. That's far too low for use in a pressure cooker room. However, the second condition for autoignition is 10MJ of energy in the room, which cannot be reached unless the room is above 368.55 kPa. So as long as you keep the pressure below that point it doesn't matter how hot the room gets: it won't spontaneously combust (unless sparked).
 
 ### Math Zone
+
 If you're curious where the hell I got that magical "368.55 kPa" number from, here's the math:
 
-`T=Q/(nc)` comes from `Q=ncT`
-`P=nRT/V` comes from `PV=nRT`
-substituting `T=Q/(nc)` into `P=nRT/V` and simplifying gets us `P=(QR)/(Vc)`
+`T=Q/(nc)` comes from `Q=ncT`  
+`P=nRT/V` comes from `PV=nRT`  
+substituting `T=Q/(nc)` into `P=nRT/V` and simplifying gets us `P=(QR)/(Vc)`  
 
-`Q` = 10 MJ *(autoignition required energy)*
-`R` = 8.314399719 (kPa*L)/(K*mol) *(ideal gas constant)*
-`V` = 8000 L *(volume of a grid)*
-`c` = 28.2 J/(mol\*K) *(specific heat of CO2, which is the worst-case gas as it can hold the most energy per mole)*
+- `Q` = 10 MJ *(autoignition required energy)*
+- `R` = 8.314399719 (kPa*L)/(K*mol) *(ideal gas constant)*
+- `V` = 8000 L *(volume of a grid)*
+- `c` = 28.2 J/(mol\*K) *(specific heat of CO2, which is the worst-case gas as it can hold the most energy per mole)*
 
 Substituting those values into `P=(QR)/(Vc)` yields 368.55 kPa, assuming the atmosphere is 100% CO2. If it's not you can handle slightly higher pressures. For example, for a 50% CO2 50% X mix your autoignition pressure would be 392.19 kPa
 
@@ -90,6 +94,7 @@ Things that *will* catch on fire:
 - things in your toolbelt
 
 ## Sterling
+
 - at least 3000 kPa delta-P for optimal
 - wtf bruh. do I need to actively cool the output net?
   - looks like NO? wtf.
@@ -147,6 +152,7 @@ note that the funny energyDelta Abs() WEIRDLY means we can run the thing in reve
 
 
 ## Turbine Generator
+
 Power generation caps at a 50.6625kPa difference but grids equalize at 101.325kPa per tick. This means you could potentially rate limit things for more power.
 
 Hey I'm back after reverse-engineering, and the way pressure is equalized across turbine generators is broken. Specifically, `AtmosphereEqualizeBothWays()` does not actually equalize. It just blindly moves pressure from the high-pressure side to the low pressure side. This means in a closed system with only a high pressure and a low pressure side, it will just bounce the pressure back and forth.
