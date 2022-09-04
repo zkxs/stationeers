@@ -115,7 +115,6 @@ So the TLDR is: keep your furnace room between 101.325 and 368.55 kPa to prevent
 - anything held in your hand
 - cells in drills, grinders, or welders **NO MATTER HOW DEEPLY THEY ARE NESTED IN INVENTORIES**
 - chutes
-- one-way valves
 
 ## Sterling
 
