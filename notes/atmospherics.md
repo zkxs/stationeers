@@ -135,6 +135,7 @@ Some values:
 - hot side is 5L
 - cold side is 5L
 - hotinput is 10L
+- Max power output is 8 KJ/tick
 
 mixing simply equalizes two atmospheres  
 here's what it does:
@@ -155,29 +156,14 @@ here's what it does:
 
 so we care about maximizing three things:
 1. energyDelta
-   - make sure the hot side and the cold side are not remotely close to the same temperature. There is no limit on how good this can be.
+   - make sure the input and the room are not remotely close to the same temperature.
    - Run the stirling at a higher working gas pressure
 2. _workingGasEfficiency
    - just use H2, donezo
-1. MachinePressureDifferentialEfficiency
-   - just make sure input is some "mystery value" higher pressure than output.
-   - This "mystery value" is going to be greater than 3000 kPa in practice due to the gas mixing fuckery happening FIRST.
+3. MachinePressureDifferentialEfficiency
+   - make sure the input is much hotter than the room. This will eventually get capped.
 
-so to achieve this the INTENDED way:
-- yeet hot gas from some source into the input side
-- use the room to cool the cold side
-  - cooling source?
-- something to lower the pressure of the output net
-  - the output pipe is still plenty hot, so just pump it back to the input with whatever compressor is the most power efficient (oh god why do I suspect it will be a fucking active vent)
-
-note that the funny energyDelta Abs() WEIRDLY means we can run the thing in reverse to generate power. This has some weird ramifications:
-- something to lower the pressure of the output net
-  - the output pipe is still plenty COLD (energy destruction helps), so just pump it back to the input as per normal
-- use something to cool the input
-- use something to heat the room
-  - make sure that the internal atmos doesn't get too high pressure, or it will go boom
-  - this actually does a delta-P check, so if the room is ALSO high pressure... then well, you're fine.
-
+Once the max power output of 8KJ/tick is reached, your only option to get more power from your heat is to run more stirlings in parallel.
 
 ## Turbine Generator
 
