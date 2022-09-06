@@ -30,20 +30,27 @@ QR=PVc
 
 - Your suit AC is going to have to fix whatever temperature your oxygen tank is, so try to get it to around your suit's target temperature. It's not worth it to try and maximize moles by cooling it.
 
-## Breathing
+## Human Survivability
 
-- You need 20 kPa total pressure to not get hurt
+To not take damage:
+
+- Temperature between -10C and 80C
+- Total pressure of at least 20 kPa. There is no upper limit.
+- Oxygen partial pressure of at least 16 kPa (with 100% healthy lungs. Unhealthy lungs need more O2.)
+- At most 5 kPa partial pressure of NOS
+- At most 0.5 kPa partial pressure of toxins, which include volatiles and pollutant.
+
+To breathe optimally:
+
 - Entity.cs
-- But lets do the math and find how how good this is.
+- You breathe more efficiently at lower oxygen partial pressures. Math time:
   - 0.0012 moles per breath, times an efficiency multiplier
   - MinimumOxygenPartialPressure = 16
   - efficiency = atmos.PartialPressureO2 / MinimumOxygenPartialPressure
     - bigger numbers are worse, because this is a mole consumption multiplier
     - so at 16 kPa of O2 your efficiency is 1
-    - So the best possible airmix would be 16 kPa O2 4 kPa filler to get to the 20 kPa pressure requirment.
+    - So the most efficient possible airmix would be 16 kPa O2 (plus at least 4 kPa filler to get to the 20 kPa pressure requirment)
   - so if we're breathing optimally we're doing 0.0012 moles per tick, or 0.0024 moles per second.
-  - What is the volume of a GasMask?
-  - What is the volume of a suit?
 
 ## Autoignition
 
