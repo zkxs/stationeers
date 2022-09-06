@@ -76,7 +76,7 @@ const MAXIMUM_ENVIRONMENT_PRESSURE = ONE_ATMOSPHERE * 2
 const CARBON_DIOXIDE_WORKING_PRESSURE = 20
 # how much non-O2 non-C02 gas do we allow?
 const MAXIMUM_MYSTERY_GAS_PARTIAL_PRESSURE = TARGET_TOTAL_PRESSURE - PRE_FILTER_OXYGEN_PARTIAL_PRESSURE - CARBON_DIOXIDE_WORKING_PRESSURE
-# maximum toxin partial pressure in kPa before things are bad for humans
+# maximum toxin partial pressure in kPa before warning (damage at 1kPa)
 const MAXIMUM_TOXIN_PARTIAL_PRESSURE = 0.5
 # maximum nitrous oxide partial pressure before we start getting stunned
 const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = 5

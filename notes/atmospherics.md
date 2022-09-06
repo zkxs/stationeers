@@ -34,11 +34,11 @@ QR=PVc
 
 To not take damage:
 
-- Temperature between -10C and 80C
-- Total pressure of at least 20 kPa. There is no upper limit.
+- Temperature between -10C and 50C, or your lungs will burn.
+- If total pressure is not between 20 kPa and 607.95 kPa you will take psychological damage from all the alarms and labored breathing sounds.
 - Oxygen partial pressure of at least 16 kPa (with 100% healthy lungs. Unhealthy lungs need more O2.)
-- At most 5 kPa partial pressure of NOS
-- At most 0.5 kPa partial pressure of toxins, which include volatiles and pollutant.
+- At most 5 kPa partial pressure of NOS, or you'll be stunned.
+- At most 1 kPa partial pressure of toxins (which include volatiles and pollutant) or your lungs will be poisoned.
 
 To breathe optimally:
 
@@ -49,8 +49,30 @@ To breathe optimally:
   - efficiency = atmos.PartialPressureO2 / MinimumOxygenPartialPressure
     - bigger numbers are worse, because this is a mole consumption multiplier
     - so at 16 kPa of O2 your efficiency is 1
-    - So the most efficient possible airmix would be 16 kPa O2 (plus at least 4 kPa filler to get to the 20 kPa pressure requirment)
+    - So the most efficient possible airmix would be 16 kPa O2 (plus at least 4 kPa filler to get to the 20 kPa pressure requirement)
   - so if we're breathing optimally we're doing 0.0012 moles per tick, or 0.0024 moles per second.
+
+_entityMolePerBreath = 0.0012f
+
+## Plant Survivability
+
+To not take damage:
+
+- At most 1 kPa partial pressure of toxins (which may vary from plant to plant, but typically includes volatiles and pollutant)
+- at least 0.00003 moles of water available
+- room temperature between 15C and 52.5C
+- water temperature between 3C and 62.5C
+
+
+For optimal growth:
+
+- at least 0.00006 moles of water available
+- room temperature between 30C and 40C
+- at least 0.0012 moles of CO2 available
+- fully lit
+  - grow lamps and the powered hydroponics stations light fully
+  - sunlight is based on solar scale of the world.
+  - grow lamps take priority over the sun. This means on vulcan you will actually get a 1.5x growth multiplier if you turn *off* your growlamp in direct sunlight!
 
 ## Autoignition
 
