@@ -62,7 +62,9 @@ To not take damage:
 - at least 0.00003 moles of water available
 - room temperature between 15C and 52.5C
 - water temperature between 3C and 62.5C
-
+- light doesn't matter
+- CO2 pressure doesn't matter
+- total pressure doesn't matter
 
 For optimal growth:
 
@@ -73,6 +75,9 @@ For optimal growth:
   - grow lamps and the powered hydroponics stations light fully
   - sunlight is based on solar scale of the world.
   - grow lamps take priority over the sun. This means on vulcan you will actually get a 1.5x growth multiplier if you turn *off* your growlamp in direct sunlight!
+- water temperature doesn't matter
+- total pressure doesn't matter (provided it contains enough CO2 for the plant to consume)
+- toxin presence doesn't matter
 
 ## Autoignition
 
