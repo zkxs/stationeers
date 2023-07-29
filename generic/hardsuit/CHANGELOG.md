@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 2023-07-29
+
+### Changed
+
+- The AC will now target 20C whenever the helmet is closed. This is to stop people from thinking they're dying.
+
 ## 1.2.0 2022-08-27
 
 ### Changed

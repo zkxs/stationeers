@@ -38,6 +38,8 @@ const ONE_ATMOSPHERE = 101.325
 const MINIMUM_TEMPERATURE = ZERO_CELSIUS - 10
 # +80C for real, but suit lady warns at 40C
 const MAXIMUM_TEMPERATURE = ZERO_CELSIUS + 80
+# target temperature to run AC at
+const TARGET_TEMPERATURE = ZERO_CELSIUS + 20
 # anything beneath this pressure we treat as vacuum
 const LOW_PRESSURE = 1
 # Extra kPa of total internal pressure to keep around for safety
@@ -197,7 +199,7 @@ or unsafe unsafe r14
 suit.On = helmetClosed
 
 # Set the target temperature to our desired temperature
-suit.TemperatureSetting = MINIMUM_TEMPERATURE
+suit.TemperatureSetting = TARGET_TEMPERATURE
 
 # check if pressure is outside of safe range.
 # if externalPressure < MINIMUM_ENVIRONMENT_PRESSURE || externalPressure > MAXIMUM_ENVIRONMENT_PRESSURE

@@ -1,77 +1,77 @@
 bdse d0 5         # runtime's hardsuit manager
-s db Filtration 0 # version 1.2.0
+s db Filtration 0 # version 1.3.0
 s db AirRelease 0 # transpiled with icX
 s db On 0         # source: https://bit.ly/3zDNjBW
 j 75
 l r2 db Filtration
 l r3 d0 Open
-seqz r4 r3
-l r5 d0 Pressure
-l r6 d0 RatioOxygen
-mul r6 r6 r5
-l r7 d0 RatioCarbonDioxide
-mul r7 r7 r5
-add r15 r6 r7
-sub r15 r5 r15
+seqz r3 r3
+l r4 d0 Pressure
+l r5 d0 RatioOxygen
+mul r5 r5 r4
+l r6 d0 RatioCarbonDioxide
+mul r6 r6 r4
+add r15 r5 r6
+sub r15 r4 r15
 l r13 d0 RatioPollutant
 l r14 d0 RatioVolatiles
 add r13 r13 r14
-mul r13 r13 r5
+mul r13 r13 r4
 sge r14 r13 0.5
 l r13 d0 RatioNitrousOxide
-mul r13 r13 r5
+mul r13 r13 r4
 sge r13 r13 5
 or r14 r14 r13
 sgt r0 r15 558.85
-and r0 r0 r4
+and r0 r0 r3
 or r0 r0 r14
 l r15 db Error
 seqz r15 r15
 and r15 r15 r0
 s db Error r15
-l r9 db PressureExternal
-slt r15 r9 1
+l r8 db PressureExternal
+slt r15 r8 1
 l r14 db TemperatureExternal
-select r8 r15 0 r14
-slt r15 r8 263.15
+select r7 r15 0 r14
+slt r15 r7 263.15
 move r1 r15
-sgt r14 r8 353.15
+sgt r14 r7 353.15
 or r1 r1 r14
-s db On r4
-s db TemperatureSetting 263.15
-slt r15 r9 72.72727272727273
-sgt r14 r9 202.65
+s db On r3
+s db TemperatureSetting 293.15
+slt r15 r8 72.72727272727273
+sgt r14 r8 202.65
 or r13 r15 r14
 or r1 r1 r13
-sgt r15 r5 11.3
-sgt r14 r7 5
+sgt r15 r4 11.3
+sgt r14 r6 5
 and r15 r15 r14
 and r15 r15 r2
-sgt r14 r5 597.95
+sgt r14 r4 597.95
 or r15 r14 r15
-and r2 r15 r4
-sgt r15 r5 9999999999
+and r2 r15 r3
+sgt r15 r4 9999999999
 or r15 r15 r0
 or r15 r15 r2
 s db Filtration r15
-and r15 r1 r4
+and r15 r1 r3
 s d0 Lock r15
-nor r15 r1 r0
-and r15 r15 r3
+or r15 r1 r0
+nor r15 r15 r3
 s d0 Open r15
-sgt r15 r5 595.95
+sgt r15 r4 595.95
 select r15 r15 19.1 17.1
-sub r15 r15 r6
-add r15 r15 r5
+sub r15 r15 r5
+add r15 r15 r4
 max r15 r15 11.3
 select r14 r2 607.95 r15
-slt r13 r6 16
+slt r13 r5 16
 select r14 r13 r15 r14
 select r14 r0 -9999999999 r14
 s db PressureSetting r14
 seqz r15 r2
 or r15 r15 r13
-and r15 r15 r4
+and r15 r15 r3
 s db AirRelease r15
 yield
 j 0
