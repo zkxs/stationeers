@@ -15,7 +15,7 @@
 ##################
 # Register Notes #
 ##################
-# r0 - r9 are reserved for specific variables
+# r0 - r8 are reserved for specific variables
 # r13 - r15 are temporary registers
 # This leaves r10 - r12, ra, and sp free
 
@@ -23,7 +23,7 @@
 # DEBUG STUFF #
 ###############
 #use aliases
-#use comments
+# cannot `use comments` because my comments are too insane
 # cannot `use constants` because I use arithmetic in my const definitions
 
 #############
@@ -85,9 +85,9 @@ const MAXIMUM_NITROUS_OXIDE_PARTIAL_PRESSURE = 5
 # Device aliases #
 ##################
 # The hardsuit just does these, so this is guaranteed good for any player's setup.
-alias suit   db
+alias suit db
 alias helmet d0
-alias pack   d1
+alias pack d1
 
 ############
 # THE CODE #
@@ -117,10 +117,9 @@ var unsafe
 # it internally to allow the user to trigger a filter.
 var filtering = suit.Filtration
 
-# Note that we save both helmetOpen and helmetClosed for later as we'll need them in many places
-var helmetOpen = helmet.Open
-var helmetClosed
-seqz helmetClosed helmetOpen
+# Note that we only save helmetClosed for later as it turns out it's way more useful than the inverse
+var helmetClosed = helmet.Open
+seqz helmetClosed helmetClosed
 
 # get helmet pressure
 var internalPressure = helmet.Pressure
@@ -200,7 +199,6 @@ suit.On = helmetClosed
 # Set the target temperature to our desired temperature
 suit.TemperatureSetting = MINIMUM_TEMPERATURE
 
-# NOTE THAT WE STILL USE r15 AND r14 FROM THE PREVIOUS BLOCKS HERE!!! DO NOT REORDER!
 # check if pressure is outside of safe range.
 # if externalPressure < MINIMUM_ENVIRONMENT_PRESSURE || externalPressure > MAXIMUM_ENVIRONMENT_PRESSURE
 #     unsafe = 1
@@ -242,10 +240,15 @@ suit.Filtration = r15
 and r15 unsafe helmetClosed
 helmet.Lock = r15
 
+# helmetNeedsClosing = unsafe || flushing
 # helmetDoesNotNeedClosing = !(unsafe || flushing)
-# helmet.Open = helmet.Open && helmetDoesNotNeedClosing
-nor r15 unsafe flushing
-and r15 r15 helmetOpen
+# helmet.Open = helmetOpen && helmetDoesNotNeedClosing
+# algebra time...
+# helmet.Open = !(!helmetOpen || !helmetDoesNotNeedClosing)
+# helmet.Open = !(helmetClosed || helmetNeedsClosing)
+# helmet.Open = !(helmetClosed || unsafe || flushing)
+or r15 unsafe flushing
+nor r15 r15 helmetClosed
 helmet.Open = r15
 
 # calculate target O2 partial pressure
@@ -271,20 +274,22 @@ slt r13 oxygenPartialPressure MINIMUM_OXYGEN_PARTIAL_PRESSURE
 # r13 is now oxygenPartialPressureLow. We need this further down.
 
 # override the pressure back to default if oxygenPartialPressureLow is true
+# this only has an effect if we're filtering
 # (we aren't done with r13 yet)
 select r14 r13 r15 r14
 
-# Handle autoflush by setting the target pressure to zero
+# Handle autoflush by setting the target pressure as low as possible
 select r14 flushing MINIMUM_RELEASE_PRESSURE_SETTING r14
 # r14 is now our desired pressure setting
 
 suit.PressureSetting = r14
 
 # suit.AirRelease = (!filtering || oxygenPartialPressureLow) && helmetClosed
+# even if we're filtering, if the oxygen partial pressure is low we still want the air release on
 # We don't care if we're flushing or not, as a 0kPa release pressure makes closing the release redundant
 seqz r15 filtering
 or r15 r15 r13
-# (we used r13=oxygenPartialPressureLow from up above, and now we're done with it)
+# (we used r13=oxygenPartialPressureLow from up above, and now we're finally done with it)
 and r15 r15 helmetClosed
 suit.AirRelease = r15
 

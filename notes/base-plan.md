@@ -94,7 +94,7 @@
 
 1. starting equipment tank
 2. trading
-3. composter?
+3. composter? not sure if sustainable... would need outside source of O2
 
 #### Safe environment to eat/drink
 
