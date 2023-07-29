@@ -71,9 +71,6 @@ The game will use the last bound aliases as tooltips for the housing screws. Thi
 
 As you only have 18 registers and you often need a register for only a few lines, there's an obvious benefit for reusing the same register for different jobs throughout your program. While it might be tempting to aggressively do this to every register, 18 registers is actually quite a lot for a 128 line program. Don't be afraid to reserve registers for a value, even if you could be reusing that register for more than one thing. 4 temporary registers is more than enough for most of the math you'll be doing, and that still leaves you 14 reserved registers.
 
-## Not
-Use `seqz r0 r0` for inverting `r0`. While you could do something like `nor r0 r0 r0` that will just confuse people.
-
 ## Exponents
 
 - x<sup>2</sup>
@@ -211,14 +208,11 @@ Allowed:
 - Doubles can have thousands separators `1,000.0`, and leading `+100` or trailing `100.0-` signs.
 - `Infinity` and `-Infinity` are valid literals.
 - Various [enum literals](#logictype-is-an-integer)
+- `nan` is hardcoded to give a NaN value.
 
 Not Allowed:
 
 - Exponents such as `1e100` do not parse
-
-Sort of Allowed:
-
-- `NaN` parses, but most instructions treat a NaN literal as an error. `define`, however works. Which means you can `define NaN NaN` to get a working NaN literal. If you just need NaN in a register, you can do `sqrt r0 -1` or something similar.
 
 ## Enum Literals
 
@@ -244,9 +238,11 @@ This trick applies to more than just LogicType (although LogicType is the most u
 - LogicReagentMode
 - LogicBatchMethod
 - Every enum type in Assembly-CSharp
+- GasType
+- ... more documented in the "Variables" help?
 
 ## NaN Checking
-NaN does not equal NaN. This behavior isn't actually a MIPS thing, it's an IEEE-754 thing. This means if you need to check a number `n` for NaN, the best way to do it is:
+NaN does not equal NaN. This behavior isn't actually a MIPS thing, it's an IEEE-754 thing. This means if you need to check a number `n` for NaN, one way to do it is:
 
 ```mips
 # Check if n is NaN
@@ -321,10 +317,16 @@ Most of these are already reasonably well-documented on the [MIPS Wiki page](htt
 
 - l
 - lb
+- lbn <registerToLoadInto> <deviceHash> <nameHash> <batchMode>
+- lbns
+- lbs lbs <registerToLoadInto> <deviceHash> <slotIndex> <variableToLoad> <batchMode>
 - lr
 - ls
 - s
 - sb
+- sbn <deviceHash> <nameHash> <variableToStore> <registerToLoadFrom>
+- sbs
+- ss
 
 ## Stack
 
@@ -360,8 +362,16 @@ These are logical operations, *not* bitwise operations.
 
 - and
 - nor
+- not
 - or
 - xor
+
+## Bitwise
+
+- sla
+- sll
+- sra
+- srl
 
 ## Math
 
@@ -507,7 +517,9 @@ All trigonometry functions use radians for angles.
 - brlez
 - brlt
 - brltz
+- bnan <valueToCheck> <lineNumberToBranchTo>
 - brna
+- brnan <valueToCheck> <relativeLineNumberToBranch>
 - brnaz
 - brne
 - brnez
@@ -533,6 +545,8 @@ All trigonometry functions use radians for angles.
 - slez
 - slt
 - sltz
+- snan <registerToLoadInto> <valueToCheck>
+- snanz <registerToLoadInto> <valueToCheck>
 - sne
 - snez
 
@@ -544,6 +558,22 @@ Used for comparing *almost* equal values.
 - sapz
 - sna
 - snaz
+
+# Preprocessing
+
+- `HASH("toHash")` where `toHash` is a prefab name
+- `%number` where `number` is a binary number consisting of `[01_]`
+- `$number` where `number` is a hexadecimal number consisting of `[0-9A-Fa-f_]`
+
+# Constants
+
+- `nan` = double.NaN "A constant representing 'not a number'. This constant technically provides a 'quiet' NaN, a signal NaN from some instructions will result in an exception and halt execution"
+- `pinf` = double.PositiveInfinity "A constant representing a positive infinite value"
+- `ninf` = double.NegativeInfinity "A constant representing a negative infinite value"
+- `pi` = Math.PI "A constant representing ratio of the circumference of a circle to its diameter, provided in double precision"
+- `deg2rad` = Math.PI / 180.0 "Degrees to radians conversion constant"
+- `rad2deg` = 180.0 / Math.PI "Radians to degrees conversion constant"
+- `epsilon` = double.Epsilon "A constant representing the smallest value representable in double precision"
 
 # Reverse Engineering
 Useful for when you toss Stationeers into a decompiler.

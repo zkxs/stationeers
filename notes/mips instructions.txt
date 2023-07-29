@@ -36,6 +36,7 @@ bltz
 bltzal
 bna
 bnaal
+bnan
 bnaz
 bnazal
 bne
@@ -57,6 +58,7 @@ brlez
 brlt
 brltz
 brna
+brnan
 brnaz
 brne
 brnez
@@ -73,6 +75,9 @@ jr
 l
 label
 lb
+lbn
+lbns
+lbs
 log
 lr
 ls
@@ -82,6 +87,7 @@ mod
 move
 mul
 nor
+not
 or
 peek
 pop
@@ -92,6 +98,8 @@ s
 sap
 sapz
 sb
+sbn
+sbs
 sdns
 sdse
 select
@@ -102,16 +110,23 @@ sgez
 sgt
 sgtz
 sin
+sla
 sle
 sleep
 slez
+sll
 slt
 sltz
 sna
+snan
+snanz
 snaz
 sne
 snez
 sqrt
+sra
+srl
+ss
 sub
 tan
 trunc
