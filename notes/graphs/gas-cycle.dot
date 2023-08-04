@@ -1,0 +1,105 @@
+digraph stationeers_gas_cycle {
+    graph [
+        layout = dot
+        rankdir = LR
+        nodesep = 0.25
+        ranksep = 0.5
+        bgcolor = gray12
+        pencolor = red // cluster border color
+        style = invis // don't render cluster borders
+        # concentrate = true // doesn't work super well, seems like it's a half-done feature
+        #splines = polyline
+    ]
+    edge [
+        color = gray85
+        fontcolor = gray90
+        dir = none
+        fontname = "Helvetica"
+        weight = 100
+    ]
+    node [
+        color = gray85
+        fontcolor = gray90
+        fontname = "Helvetica"
+        shape = box
+        style = rounded
+    ]
+
+    subgraph west {
+        graph [rank = same]
+        oldcopper [label = "Old Copper", tooltip = "Copper wires and sheets"]
+        oldiron [label = "Old Iron", tooltip = "Various iron derivatives"]
+    }
+
+    hub [label = "Home Base", tooltip = "Hub and space elevator"]
+    willtown [label = "Will Town", tooltip = "Coal power, steel"]
+
+    subgraph lakemich {
+        #graph [rank = same]
+        lakemich [label = "Lake Mich Again", tooltip = "A junction that has steel pipe production horribly shoved into it"]
+        lakemich_factory [label = "Lake Mich Factory", tooltip = "Modular frames"]
+    }
+
+    subgraph foolsgold {
+        graph [rank = same]
+        foolsgold_junction [label = "Unnamed Junction", tooltip = "Nothing here", shape = point]
+        foolsgold [label = "Fool's Gold", tooltip = "Quickwire"]
+    }
+
+    oldcoal [label = "Old Coal", tooltip = "Coal power, steel, quartz"]
+
+    subgraph spaghet {
+        graph [rank = same]
+        scenic_route [label = "Scenic Route", tooltip = "Encased beams"]
+        spaghetti [label = "Spaghetti Zone", tooltip = "Nothing here"]
+    }
+
+    subgraph central {
+        graph [rank = same]
+        ravine_junction [label = "Ravine Junction", tooltip = "Nothing here", shape = point]
+        oiltown [label = "Oil Town", tooltip = "Big oil processing area"]
+        mountain_view_entrance [label = "Mountain View Entrance"]
+        riverfront [label = "Riverfront", tooltip = "There is actually nothing here"]
+    }
+
+    michsnack [label = "Mich's Snack Shack", tooltip = "They serve a good coffee"]
+    babel [label = "Tower of Babel", tooltip = "The folly of man"]
+    fuckozone [label = "Fucko Zone", tooltip = "Coal and very angry natives"]
+    pc_production [label = "PC Production"]
+    snack_factory [label = "Snack Factory", tooltip = "Heavy Modular Frames"]
+
+    ravine_junction -> oiltown
+    spaghetti -> scenic_route
+    foolsgold_junction -> foolsgold [style = dashed]
+    oiltown -> mountain_view_entrance
+    mountain_view_entrance -> riverfront
+
+    // will town line
+    oldcopper -> hub [color = cyan]
+    oldiron -> hub [color = cyan]
+    oldcopper -> oldiron [color = cyan]
+    hub -> lakemich -> willtown [color = cyan]
+
+    // mountain view line
+    oldcoal -> scenic_route -> mountain_view_entrance -> pc_production [color = green]
+
+    // fucko line
+    lakemich -> lakemich_factory -> babel [color = red]
+    babel -> fuckozone [style = dotted, color = red]
+
+    // snack line
+    lakemich -> foolsgold_junction -> oldcoal -> spaghetti -> ravine_junction -> michsnack -> snack_factory [color = yellow]
+
+
+    // off gassing
+    
+
+    // graph title
+    graph [
+        fontname = "Helvetica"
+        fontsize = 36
+        fontcolor = gray90
+        label = "Stationeers Gas Cycle"
+        labelloc = t
+    ]
+}

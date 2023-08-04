@@ -83,6 +83,8 @@ For optimal growth:
 
 Active vents autoignite at 300C, like most devices. That's far too low for use in a pressure cooker room. However, the second condition for autoignition is 10MJ of energy in the room, which cannot be reached unless the room is above 368.55 kPa. So as long as you keep the pressure below that point it doesn't matter how hot the room gets: it won't spontaneously combust (unless sparked).
 
+**EDIT**: Now that steam is a gas that exists, the new save limit if there can be steam in your atmosphere is only 144.35 kPa
+
 ### Math Zone
 
 If you're curious where the hell I got that magical "368.55 kPa" number from, here's the math:
@@ -109,13 +111,13 @@ So the TLDR is: keep your furnace room between 101.325 and 368.55 kPa to prevent
   - airlock doors (don't go over 1 MPa)
   - glass door (WTF, but it can only handle a 200 kPa delta, so maybe don't use this)
 - passive vents
-- atmospheric devices (pumps, valves, etc)
 - heavy cable (technically they can burn, but 10,000C is way too high to reach typically)
 - frames
 - hardsuits
 - most atmospheric devices
   - pipes
   - pumps
+  - valves
   - pipe analyzer
   - filtration units
   - etc
@@ -173,20 +175,21 @@ Some values:
 
 mixing simply equalizes two atmospheres  
 here's what it does:
-  1. fill internal atmos from the attached tank
-  2. mix _hotSideAtmosphere and internal atmos
-  3. mix _coldSideAtmosphere and internal atmos
-  4. mix _hotInputAtmosphere and InputNetwork (the input pipe)
-  5. transfer heat from _hotInputAtmosphere to _hotSideAtmosphere. The result is UNUSED.
-  6. mix _hotInputAtmosphere and OutputNetwork (the output pipe)
-  7. transfer energy from environment to _coldSideAtmosphere. The result is UNUSED.
-  8. energyDelta = Abs(_hotSideAtmosphere.energy - _coldSideAtmosphere.energy) (note that nuking the sign here is WEIRD)
-  9. _machineEnvironmentEfficiency = 1 // WTF WHY IS THIS ALWAYS 1!?!?!?
-  10. _hotSideAtmosphere.Pressure - _coldSideAtmosphere.Pressure is used to calculate MachinePressureDifferentialEfficiency
-      the best MachinePressureDifferentialEfficiency occurs if _hotSideAtmosphere is 3000 kPa higher than _coldSideAtmosphere
-  11. _workingGasEfficiency comes from the can gas. You want LOW specific heat, so H2 is the best.
-  12. EnergyAsPower = Min(MaxPower, energyDelta * _workingGasEfficiency * _machineEnvironmentEfficiency * MachinePressureDifferentialEfficiency);
-  13. Remove EnergyAsPower joules of energy from _hotSideAtmosphere
+
+1. fill internal atmos from the attached tank
+2. mix _hotSideAtmosphere and internal atmos
+3. mix _coldSideAtmosphere and internal atmos
+4. mix _hotInputAtmosphere and InputNetwork (the input pipe)
+5. transfer heat directly between _hotInputAtmosphere and _hotSideAtmosphere. The result is UNUSED.
+6. mix _hotInputAtmosphere and OutputNetwork (the output pipe)
+7. transfer energy via convection between environment and _coldSideAtmosphere. The result is UNUSED.
+8. energyDelta = Abs(_hotSideAtmosphere.energy - _coldSideAtmosphere.energy) (note that nuking the sign here is WEIRD)
+9. _machineEnvironmentEfficiency = 1 // Always 1, perhaps via an oversight. There's some indication the devs intended environment temperature to affect this.
+10. _hotSideAtmosphere.Pressure - _coldSideAtmosphere.Pressure is used to calculate MachinePressureDifferentialEfficiency
+    the best MachinePressureDifferentialEfficiency occurs if _hotSideAtmosphere is 3000 kPa higher than _coldSideAtmosphere
+11. _workingGasEfficiency comes from the can gas. You want LOW specific heat, so H2 is the best.
+12. EnergyAsPower = Min(MaxPower, energyDelta * _workingGasEfficiency * _machineEnvironmentEfficiency * MachinePressureDifferentialEfficiency);
+13. Remove EnergyAsPower joules of energy from _hotSideAtmosphere
 
 so we care about maximizing three things:
 1. energyDelta
@@ -194,14 +197,21 @@ so we care about maximizing three things:
    - Run the stirling at a higher working gas pressure
 2. _workingGasEfficiency
    - just use H2, donezo
-3. MachinePressureDifferentialEfficiency
-   - make sure the input is much hotter than the room. This will eventually get capped.
+3. MachineEfficiency
+   - an animation curve that in code looks to always output 1.0... TODO: confirm in game if this is the case
+5. MachinePressureDifferentialEfficiency
+   - make sure the input pressure is 3000kPA higher than the output. More has no benefit, less has penalties.
+6. EnergyAsPower
+   - capped at (TODO: confirm ingame the value of `MaxPower`)
+   - if you are at the cap you're wasting thermal energy. Add more sterlings in parallel.
+
+
 
 Once the max power output of 8KJ/tick is reached, your only option to get more power from your heat is to run more stirlings in parallel.
 
 ## Turbine Generator
 
-Power generation caps at a 50.6625kPa difference but grids equalize at 101.325kPa per tick. This means you could potentially rate limit things for more power.
+Power generation caps at a 50.6625kPa difference (producing 90W) but grids equalize at 101.325kPa per tick. This means you could potentially rate limit things for more power.
 
 Hey I'm back after reverse-engineering, and the way pressure is equalized across turbine generators is broken. Specifically, `AtmosphereEqualizeBothWays()` does not actually equalize. It just blindly moves pressure from the high-pressure side to the low pressure side. This means in a closed system with only a high pressure and a low pressure side, it will just bounce the pressure back and forth.
 

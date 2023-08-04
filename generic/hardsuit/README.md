@@ -40,7 +40,7 @@ If any of these are false, the hardsuit controller program may behave in undesir
 8. A 1 atmosphere breathable room contains at least 22% oxygen
 9. You would prefer a brief stint in vacuum to being poisoned
 10. You don't mind the suit having some warning icons up all the time
-11. You don't want your suit constantly beep
+11. You don't want your suit constantly beeping
 12. You don't want to hear you character constantly gasping for air (even if they're fine and not actually dying)
 13. You have 100% healthy lungs
 

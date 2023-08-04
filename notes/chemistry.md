@@ -79,4 +79,4 @@ Winterspawn:
 - 1 Uranium => 35 X
 - 1 Biomass => 8 H2 + 4 X
 
-In the before-times you could recycle ingots back into ores and offgas them again. In the modern era, the centrifuge degasses ores it outputs. This does NOT affect biomass, meaning you can recycle organics into biomass to get that juice H2 offgas without having to futz with the composter.
+In the before-times you could recycle ingots back into ores and offgas them again. In the modern era, the centrifuge degasses ores it outputs. This does NOT affect biomass, meaning you can recycle organics into biomass to get that juicy H2 offgas without having to futz with the composter.
