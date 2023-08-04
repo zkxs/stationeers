@@ -71,6 +71,9 @@ The game will use the last bound aliases as tooltips for the housing screws. Thi
 
 As you only have 18 registers and you often need a register for only a few lines, there's an obvious benefit for reusing the same register for different jobs throughout your program. While it might be tempting to aggressively do this to every register, 18 registers is actually quite a lot for a 128 line program. Don't be afraid to reserve registers for a value, even if you could be reusing that register for more than one thing. 4 temporary registers is more than enough for most of the math you'll be doing, and that still leaves you 14 reserved registers.
 
+## Not
+Use `seqz r0 r0` for logical inverting `r0`. `not` is a bitwise operator so may not do exactly what you want.
+
 ## Exponents
 
 - x<sup>2</sup>
@@ -156,7 +159,7 @@ Luckily, we can automate the stripping of unnecessary lines via a preprocessor. 
 The line count limit also encourages awful hacks like this:
 
 ```mips
-move result 0
+move result 0 # some default value
 jr offset
 move result 1
 select result result result 2
@@ -305,7 +308,7 @@ All ICs are executed in **series** at the end of an ElectricityTick.
 - This means bidirectional communication within a single tick is impossible. Yes, even if you busy loop.
 - Because IC execution happens in one big batch each tick and isn't "spread out" over time, ICs will always tick in perfect sync with each other. As long as you don't get auto-yielded the way ICs tick is completely deterministic.
 - It is possible for ICs to programmatically determine their execution order relative to other ICs. ([Video example](https://www.youtube.com/watch?v=m9ZOCTS178o), [example code](../tests/ic10-tests/serial.manual.ic10)). This can be used to establish IC-to-IC communication in a deterministic way.
-- The order in which ICs are executed is the reverse order from which their housings were registered. Housings are registered when added to a grid (a.k.a. when built). This order appears to persist across world save/load.  
+- The order in which ICs are executed is the reverse order from which their housings were registered. Housings are registered when added to a grid (a.k.a. when built). This order appears to persist across world save/load... but that needs more testing  
   In other words: **The housing built last executes first.**
 - ElectricityTick is ran at the end of a GameTick, notably *after* all atmospheric events have ticked.
 
