@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1 2023-08-04
+
+### Fixed
+- Fixed regression introduced by game changing all logical operators into bitwise operators, notably breaking `nand` and `nor`.
+
 ## 1.3.0 2023-07-29
 
 ### Changed

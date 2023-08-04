@@ -250,7 +250,8 @@ helmet.Lock = r15
 # helmet.Open = !(helmetClosed || helmetNeedsClosing)
 # helmet.Open = !(helmetClosed || unsafe || flushing)
 or r15 unsafe flushing
-nor r15 r15 helmetClosed
+or r15 r15 helmetClosed
+seqz r15 r15
 helmet.Open = r15
 
 # calculate target O2 partial pressure

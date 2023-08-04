@@ -1,8 +1,8 @@
 bdse d0 5         # runtime's hardsuit manager
-s db Filtration 0 # version 1.3.0
+s db Filtration 0 # version 1.3.1
 s db AirRelease 0 # transpiled with icX
 s db On 0         # source: https://bit.ly/3zDNjBW
-j 75
+j 76
 l r2 db Filtration
 l r3 d0 Open
 seqz r3 r3
@@ -57,7 +57,8 @@ s db Filtration r15
 and r15 r1 r3
 s d0 Lock r15
 or r15 r1 r0
-nor r15 r15 r3
+or r15 r15 r3
+seqz r15 r15
 s d0 Open r15
 sgt r15 r4 595.95
 select r15 r15 19.1 17.1

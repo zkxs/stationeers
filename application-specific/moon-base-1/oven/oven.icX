@@ -57,7 +57,8 @@ and internalDoorOpen r15 desiredStateInterior
 InternalDoor.Open = internalDoorOpen
 
 # r15 = neitherDoorOpen = !(ExternalDoor.Open || InternalDoor.Open)
-nor r15 externalDoorOpen internalDoorOpen
+or r15 externalDoorOpen internalDoorOpen
+seqz r15 r15
 # TurboPump.On = neitherDoorOpen
 TurboPump.On = r15
 

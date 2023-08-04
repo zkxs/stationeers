@@ -74,6 +74,26 @@ As you only have 18 registers and you often need a register for only a few lines
 ## Not
 Use `seqz r0 r0` for logical inverting `r0`. `not` is a bitwise operator so may not do exactly what you want.
 
+## Nand, Nor
+
+Now that all logical operators are bitwise, `nand` and `nor` are broken and no longer work as logical operators.
+
+Broken logical cases: 
+- `1 nand 1`
+- `0 nor 1`
+- `1 nor 1`
+
+These must be replaced with something like this to still function logically:
+
+```mips
+# old
+nor r0 r1 r2
+
+# new
+or r0 r1 r2
+seqz r0 r0
+```
+
 ## Exponents
 
 - x<sup>2</sup>
